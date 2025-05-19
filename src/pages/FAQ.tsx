@@ -254,7 +254,7 @@ const FAQPage = () => {
                     </div>
                     <div>
                       <div className="text-sm text-gray-400 mb-1">Phone</div>
-                      <div>+1 (555) 123-4567</div>
+                      <div>+234 000 000 0000</div>
                     </div>
                     <div>
                       <div className="text-sm text-gray-400 mb-1">Hours</div>

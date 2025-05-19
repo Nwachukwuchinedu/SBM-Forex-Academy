@@ -79,7 +79,7 @@ const GetStartedSection = () => {
                 </div>
                 <div>
                   <div className="text-sm text-gray-400">Call us directly</div>
-                  <div className="text-lg font-semibold">+1 (555) 123-4567</div>
+                  <div className="text-lg font-semibold">+234 000 000 0000</div>
                 </div>
               </div>
               
