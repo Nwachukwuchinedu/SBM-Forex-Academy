@@ -29,38 +29,62 @@ const RegisterPage = () => {
     }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     // Basic validation
     if (!formData.firstName || !formData.lastName || !formData.email || !formData.password) {
       toast.error('Please fill in all required fields');
       return;
     }
-    
+
     if (formData.password !== formData.confirmPassword) {
       toast.error('Passwords do not match');
       return;
     }
-    
+
     if (!formData.agreeToTerms) {
       toast.error('You must agree to the Terms of Service');
       return;
     }
-    
-    // Submit form (in a real app, this would call an API)
-    toast.success('Registration successful! Welcome to SBM Forex Academy.');
-    console.log('Form submitted:', formData);
-    
-    // Reset form
-    setFormData({
-      firstName: '',
-      lastName: '',
-      email: '',
-      password: '',
-      confirmPassword: '',
-      agreeToTerms: false
-    });
+
+    try {
+      const res = await fetch('http://localhost:5000/api/auth/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          firstName: formData.firstName,
+          lastName: formData.lastName,
+          email: formData.email,
+          password: formData.password,
+        }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        toast.error(data.message || 'Registration failed');
+        return;
+      }
+
+      // Optionally store tokens
+      localStorage.setItem('accessToken', data.accessToken);
+      localStorage.setItem('refreshToken', data.refreshToken);
+
+      toast.success('Registration successful! Welcome to SBM Forex Academy.');
+      setFormData({
+        firstName: '',
+        lastName: '',
+        email: '',
+        password: '',
+        confirmPassword: '',
+        agreeToTerms: false
+      });
+      // Optionally redirect to dashboard or login
+      // navigate('/dashboard');
+    } catch (err) {
+      toast.error('Something went wrong. Please try again.');
+    }
   };
 
   return (
