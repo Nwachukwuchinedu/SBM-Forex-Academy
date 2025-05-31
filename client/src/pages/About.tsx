@@ -1,6 +1,8 @@
 import { useEffect } from 'react';
 import { Users, Award, Lightbulb, TrendingUp, LineChart, Shield } from 'lucide-react';
 import AnimatedSection from '../components/ui/AnimatedSection';
+import sbm from '../assets/images/sbm.jpg';
+import sbm1 from '../assets/images/sbm1.jpg';
 
 const AboutPage = () => {
   useEffect(() => {
@@ -186,7 +188,7 @@ const AboutPage = () => {
       </section>
 
       {/* Team Section */}
-      <section className="section-padding bg-dark">
+      {/* <section className="section-padding bg-dark">
         <div className="container-custom">
           <AnimatedSection className="text-center max-w-3xl mx-auto mb-16">
             <span className="inline-block bg-gold/10 text-gold px-4 py-1 rounded-full text-sm font-medium mb-4">
@@ -273,6 +275,30 @@ const AboutPage = () => {
                 </div>
               </div>
             </AnimatedSection>
+          </div>
+        </div>
+      </section> */}
+
+      {/* Meet the Owner */}
+      <section className="py-12">
+        <div className="container-custom flex flex-col md:flex-row items-center gap-8">
+          <div className="flex-1 flex flex-col md:flex-row gap-6 items-center">
+            <img
+              src={sbm}
+              alt="Owner 1"
+              className="w-40 h-40 object-cover rounded-full shadow-lg border-4 border-gold"
+            />
+            <img
+              src={sbm1}
+              alt="Owner 2"
+              className="w-40 h-40 object-cover rounded-full shadow-lg border-4 border-emerald"
+            />
+          </div>
+          <div className="flex-1">
+            <h2 className="heading-lg mb-2 text-gold">Meet the Owner</h2>
+            <p className="text-gray-400">
+              Our founders are passionate traders and educators dedicated to empowering others in the forex market. Their vision and expertise drive SBM Forex Academy's mission and success.
+            </p>
           </div>
         </div>
       </section>
