@@ -5,6 +5,8 @@ import StatsSection from '../components/home/StatsSection';
 import GetStartedSection from '../components/home/GetStartedSection';
 import TestimonialsSection from '../components/home/TestimonialsSection';
 import CallToAction from '../components/home/CallToAction';
+import AboutPreview from '../components/home/AboutPreview';
+
 import { useEffect } from 'react';
 
 const HomePage = () => {
@@ -15,6 +17,7 @@ const HomePage = () => {
   return (
     <div>
       <HeroSection />
+      <AboutPreview />
       <WhyChooseUs />
       <ServicesSection />
       <StatsSection />
