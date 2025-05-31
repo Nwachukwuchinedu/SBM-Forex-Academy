@@ -320,7 +320,7 @@ const FAQPage = () => {
                     >
                       Our Services
                     </Link>
-                    <Link
+                    {/* <Link
                       to="/register"
                       className="block text-gold hover:underline"
                     >
@@ -331,7 +331,7 @@ const FAQPage = () => {
                       className="block text-gold hover:underline"
                     >
                       Member Login
-                    </Link>
+                    </Link> */}
                   </div>
                 </div>
               </div>

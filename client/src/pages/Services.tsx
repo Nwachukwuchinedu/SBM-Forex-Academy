@@ -310,7 +310,7 @@ const ServicesPage = () => {
                                   </li>
                                 ))}
                               </ul>
-                              <Link
+                              {/* <Link
                                 to="/register"
                                 className={`w-full py-2 px-4 rounded text-center inline-block ${
                                   i === 1
@@ -319,7 +319,7 @@ const ServicesPage = () => {
                                 } transition-colors`}
                               >
                                 Get Started
-                              </Link>
+                              </Link> */}
                             </div>
                           ))}
                         </div>
@@ -431,10 +431,10 @@ const ServicesPage = () => {
               </p>
 
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                <Link to="/register" className="btn btn-primary">
+                {/* <Link to="/register" className="btn btn-primary">
                   Get Started
                   <ArrowRight className="ml-2 h-5 w-5" />
-                </Link>
+                </Link> */}
                 <Link to="/faq" className="btn btn-outline">
                   More Questions?
                 </Link>

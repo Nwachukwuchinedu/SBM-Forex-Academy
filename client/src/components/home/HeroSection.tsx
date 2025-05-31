@@ -32,10 +32,10 @@ const HeroSection = () => {
             </p>
 
             <div className="flex flex-wrap gap-4">
-              <Link to="/register" className="btn btn-primary">
+              {/* <Link to="/register" className="btn btn-primary">
                 Join Now
                 <ArrowRight className="ml-2 h-5 w-5" />
-              </Link>
+              </Link> */}
 
               <Link to="/services" className="btn btn-outline">
                 Our Services
@@ -111,12 +111,12 @@ const HeroSection = () => {
                     Get started today with our premium forex education and
                     signals.
                   </p>
-                  <Link
+                  {/* <Link
                     to="/register"
                     className="text-gold flex items-center text-sm font-medium"
                   >
                     Get Started <ArrowRight className="ml-1 h-4 w-4" />
-                  </Link>
+                  </Link> */}
                 </div>
 
                 {/* Floating badges */}

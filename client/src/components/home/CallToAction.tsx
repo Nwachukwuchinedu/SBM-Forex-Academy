@@ -23,10 +23,10 @@ const CallToAction = () => {
             </p>
 
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Link to="/register" className="btn btn-primary">
+              {/* <Link to="/register" className="btn btn-primary">
                 Join Now
                 <ArrowRight className="ml-2 h-5 w-5" />
-              </Link>
+              </Link> */}
               <Link to="/services" className="btn btn-outline">
                 Explore Services
               </Link>

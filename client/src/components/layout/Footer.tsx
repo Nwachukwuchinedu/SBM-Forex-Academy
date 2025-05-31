@@ -115,7 +115,7 @@ const Footer = () => {
                   FAQ
                 </Link>
               </li>
-              <li>
+              {/* <li>
                 <Link
                   to="/login"
                   className="text-gray-400 hover:text-gold transition-colors"
@@ -130,7 +130,7 @@ const Footer = () => {
                 >
                   Register
                 </Link>
-              </li>
+              </li> */}
             </ul>
           </div>
 

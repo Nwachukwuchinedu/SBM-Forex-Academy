@@ -320,9 +320,9 @@ const AboutPage = () => {
               </p>
               
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                <a href="/register" className="btn btn-primary">
+                {/* <a href="/register" className="btn btn-primary">
                   Join Now
-                </a>
+                </a> */}
                 <a href="/services" className="btn btn-outline">
                   Explore Services
                 </a>
