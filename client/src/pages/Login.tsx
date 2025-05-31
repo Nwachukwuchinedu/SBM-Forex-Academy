@@ -25,25 +25,50 @@ const LoginPage = () => {
     }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     // Basic validation
     if (!formData.email || !formData.password) {
       toast.error('Please fill in all required fields');
       return;
     }
-    
-    // Submit form (in a real app, this would call an API)
-    toast.success('Login successful! Welcome back.');
-    console.log('Form submitted:', formData);
-    
-    // Reset form
-    setFormData({
-      email: '',
-      password: '',
-      rememberMe: false
-    });
+
+    try {
+      const res = await fetch('http://localhost:5000/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: formData.email,
+          password: formData.password,
+        }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        toast.error(data.message || 'Login failed');
+        return;
+      }
+
+      // Store tokens
+      localStorage.setItem('accessToken', data.accessToken);
+      localStorage.setItem('refreshToken', data.refreshToken);
+
+      toast.success('Login successful! Welcome back.');
+
+      // Optionally redirect to dashboard or home
+      // navigate('/dashboard');
+
+      // Reset form
+      setFormData({
+        email: '',
+        password: '',
+        rememberMe: false
+      });
+    } catch (err) {
+      toast.error('Something went wrong. Please try again.');
+    }
   };
 
   return (
