@@ -5,6 +5,8 @@ import {
   getCurrentUser,
   refreshToken,
   logout,
+  updateProfile,
+  updatePassword,
 } from "../controllers/auth.controller.js";
 import {
   validateRegistration,
@@ -15,6 +17,8 @@ import { requireAuth } from "../middleware/auth.middleware.js";
 const router = Router();
 
 router.post("/register", validateRegistration, register);
+router.put("/update-profile", requireAuth, updateProfile);
+router.put("/update-password", requireAuth, updatePassword);
 router.post("/login", validateLogin, login);
 router.get("/me", requireAuth, getCurrentUser);
 router.get("/refresh", refreshToken);
