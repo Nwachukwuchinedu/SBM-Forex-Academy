@@ -72,6 +72,24 @@ const DashboardPage = () => {
     document.title = "Dashboard - SBM Forex Academy";
   }, [navigate]);
 
+  // Logout handler
+  const handleLogout = async () => {
+    const refreshToken = localStorage.getItem("refreshToken");
+    try {
+      await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/auth/logout`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ refreshToken }),
+      });
+    } catch {
+      // ignore error, proceed to clear tokens
+    }
+    localStorage.removeItem("accessToken");
+    localStorage.removeItem("refreshToken");
+    setMenuOpen(false);
+    navigate("/login");
+  };
+
   if (!user) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-dark">
@@ -94,7 +112,7 @@ const DashboardPage = () => {
           >
             <User className="h-5 w-5" /> Dashboard
           </Link>
-          <Link
+          {/* <Link
             to="/dashboard/subscription"
             className="flex items-center gap-3 text-gray-400 hover:text-gold transition"
           >
@@ -105,7 +123,7 @@ const DashboardPage = () => {
             className="flex items-center gap-3 text-gray-400 hover:text-gold transition"
           >
             <FileText className="h-5 w-5" /> Transaction History
-          </Link>
+          </Link> */}
           <Link
             to="/dashboard/service"
             className="flex items-center gap-3 text-gray-400 hover:text-gold transition"
@@ -146,12 +164,7 @@ const DashboardPage = () => {
                 </Link>
                 <button
                   className="flex items-center gap-2 px-4 py-2 w-full text-left text-red-600 hover:bg-gold/10 transition"
-                  onClick={() => {
-                    localStorage.removeItem("accessToken");
-                    localStorage.removeItem("refreshToken");
-                    setMenuOpen(false);
-                    navigate("/login");
-                  }}
+                  onClick={handleLogout}
                 >
                   <LogOut className="h-4 w-4" /> Logout
                 </button>
@@ -186,12 +199,7 @@ const DashboardPage = () => {
                   </Link>
                   <button
                     className="flex items-center gap-2 px-4 py-2 w-full text-left text-red-600 hover:bg-gold/10 transition"
-                    onClick={() => {
-                      localStorage.removeItem("accessToken");
-                      localStorage.removeItem("refreshToken");
-                      setMenuOpen(false);
-                      navigate("/login");
-                    }}
+                    onClick={handleLogout}
                   >
                     <LogOut className="h-4 w-4" /> Logout
                   </button>
@@ -238,7 +246,7 @@ const DashboardPage = () => {
               </Link>
             </div>
             {/* Billing History Card */}
-            <div className="card-glass p-6 flex flex-col justify-between">
+            {/* <div className="card-glass p-6 flex flex-col justify-between">
               <div>
                 <div className="flex items-center gap-3 mb-4">
                   <FileText className="h-6 w-6 text-gold" />
@@ -254,9 +262,9 @@ const DashboardPage = () => {
               <Link to="/dashboard/history" className="btn btn-primary w-full">
                 Payment History
               </Link>
-            </div>
+            </div> */}
             {/* Subscriptions Card */}
-            <div className="card-glass p-6 flex flex-col justify-between">
+            {/* <div className="card-glass p-6 flex flex-col justify-between">
               <div>
                 <div className="flex items-center gap-3 mb-4">
                   <CreditCard className="h-6 w-6 text-gold" />
@@ -274,11 +282,11 @@ const DashboardPage = () => {
               >
                 Manage Subscription
               </Link>
-            </div>
+            </div> */}
           </div>
 
           {/* Payment History Section */}
-          <div className="bg-dark-lighter rounded-lg shadow p-6 mb-8">
+          {/* <div className="bg-dark-lighter rounded-lg shadow p-6 mb-8">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-xl font-bold text-gold">Payment History</h2>
               <Link
@@ -289,7 +297,7 @@ const DashboardPage = () => {
               </Link>
             </div>
             <div className="overflow-x-auto">
-              <table className="min-w-full text-left">
+              <table className="w-full text-left">
                 <thead>
                   <tr className="text-gray-700 border-b border-gray-700">
                     <th className="py-2 px-4 font-semibold">ORDER ID</th>
@@ -320,7 +328,7 @@ const DashboardPage = () => {
                 </tbody>
               </table>
             </div>
-          </div>
+          </div> */}
         </main>
 
         {/* Footer */}
