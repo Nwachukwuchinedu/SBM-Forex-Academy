@@ -65,8 +65,8 @@ const ServicesSection = () => {
               description="Let our professional traders manage your account and generate consistent profits."
               icon={BarChart3}
               features={[
-                "Minimum equity: $900",
-                "Synthetic indices only",
+                "Synthetic indices and forex",
+                "Tailored risk management",
                 "Professional management",
                 "Transparent profit sharing",
               ]}
