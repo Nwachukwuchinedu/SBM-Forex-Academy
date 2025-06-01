@@ -130,6 +130,24 @@ const AuthServicesPage = () => {
       </div>
     ) : null;
 
+  // Logout handler
+  const handleLogout = async () => {
+    const refreshToken = localStorage.getItem("refreshToken");
+    try {
+      await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/auth/logout`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ refreshToken }),
+      });
+    } catch {
+      // ignore error, proceed to clear tokens
+    }
+    localStorage.removeItem("accessToken");
+    localStorage.removeItem("refreshToken");
+    setMenuOpen(false);
+    navigate("/login");
+  };
+
   if (!user) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-dark">
@@ -152,7 +170,7 @@ const AuthServicesPage = () => {
           >
             <User className="h-5 w-5" /> Dashboard
           </Link>
-          <Link
+          {/* <Link
             to="/dashboard/subscription"
             className="flex items-center gap-3 text-gray-400 hover:text-gold transition"
           >
@@ -163,7 +181,7 @@ const AuthServicesPage = () => {
             className="flex items-center gap-3 text-gray-400 hover:text-gold transition"
           >
             <FileText className="h-5 w-5" /> Transaction History
-          </Link>
+          </Link> */}
           <Link
             to="/dashboard/service"
             className="flex items-center gap-3 text-gold font-semibold"
@@ -204,12 +222,7 @@ const AuthServicesPage = () => {
                 </Link>
                 <button
                   className="flex items-center gap-2 px-4 py-2 w-full text-left text-red-600 hover:bg-gold/10 transition"
-                  onClick={() => {
-                    localStorage.removeItem("accessToken");
-                    localStorage.removeItem("refreshToken");
-                    setMenuOpen(false);
-                    navigate("/login");
-                  }}
+                  onClick={handleLogout}
                 >
                   <LogOut className="h-4 w-4" /> Logout
                 </button>
@@ -244,12 +257,7 @@ const AuthServicesPage = () => {
                   </Link>
                   <button
                     className="flex items-center gap-2 px-4 py-2 w-full text-left text-red-600 hover:bg-gold/10 transition"
-                    onClick={() => {
-                      localStorage.removeItem("accessToken");
-                      localStorage.removeItem("refreshToken");
-                      setMenuOpen(false);
-                      navigate("/login");
-                    }}
+                    onClick={handleLogout}
                   >
                     <LogOut className="h-4 w-4" /> Logout
                   </button>
@@ -302,11 +310,11 @@ const AuthServicesPage = () => {
           </section>
 
           {/* Account Management Services */}
-          <section className="mb-10">
+          {/* <section className="mb-10">
             <h2 className="text-xl font-bold text-gold mb-4">
               Account Management Services
             </h2>
-            {/* <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
               {accountManagementPlans.map((plan) => (
                 <div
                   key={plan.name}
@@ -332,8 +340,8 @@ const AuthServicesPage = () => {
                   </button>
                 </div>
               ))}
-            </div> */}
-          </section>
+            </div>
+          </section> */}
 
           {/* Signal Provision Service */}
           <section className="mb-10">
