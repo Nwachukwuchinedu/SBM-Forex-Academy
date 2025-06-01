@@ -1,27 +1,29 @@
-import { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
-import { Eye, EyeOff, TrendingUp } from 'lucide-react';
-import AnimatedSection from '../components/ui/AnimatedSection';
-import { toast } from 'react-hot-toast';
+import { useState, useEffect } from "react";
+import { Link, useNavigate } from "react-router-dom"; // <-- add useNavigate
+import { Eye, EyeOff, TrendingUp } from "lucide-react";
+import AnimatedSection from "../components/ui/AnimatedSection";
+import { toast } from "react-hot-toast";
 
 const LoginPage = () => {
   useEffect(() => {
-    document.title = 'Login - SBM Forex Academy';
+    document.title = "Login - SBM Forex Academy";
   }, []);
 
+  const navigate = useNavigate(); // <-- initialize navigate
+
   const [formData, setFormData] = useState({
-    email: '',
-    password: '',
-    rememberMe: false
+    email: "",
+    password: "",
+    rememberMe: false,
   });
 
   const [showPassword, setShowPassword] = useState(false);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value, type, checked } = e.target;
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      [name]: type === 'checkbox' ? checked : value
+      [name]: type === "checkbox" ? checked : value,
     }));
   };
 
@@ -30,44 +32,47 @@ const LoginPage = () => {
 
     // Basic validation
     if (!formData.email || !formData.password) {
-      toast.error('Please fill in all required fields');
+      toast.error("Please fill in all required fields");
       return;
     }
 
     try {
-      const res = await fetch('http://localhost:5000/api/auth/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          email: formData.email,
-          password: formData.password,
-        }),
-      });
+      const res = await fetch(
+        `${import.meta.env.VITE_API_BASE_URL}/api/auth/login`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            email: formData.email,
+            password: formData.password,
+          }),
+        }
+      );
 
       const data = await res.json();
 
       if (!res.ok) {
-        toast.error(data.message || 'Login failed');
+        toast.error(data.message || "Login failed");
         return;
       }
 
       // Store tokens
-      localStorage.setItem('accessToken', data.accessToken);
-      localStorage.setItem('refreshToken', data.refreshToken);
+      localStorage.setItem("accessToken", data.accessToken);
+      localStorage.setItem("refreshToken", data.refreshToken);
 
-      toast.success('Login successful! Welcome back.');
+      toast.success("Login successful! Welcome back.");
 
-      // Optionally redirect to dashboard or home
-      // navigate('/dashboard');
+      // Redirect to dashboard
+      navigate("/dashboard");
 
       // Reset form
       setFormData({
-        email: '',
-        password: '',
-        rememberMe: false
+        email: "",
+        password: "",
+        rememberMe: false,
       });
     } catch (err) {
-      toast.error('Something went wrong. Please try again.');
+      toast.error("Something went wrong. Please try again.");
     }
   };
 
@@ -75,7 +80,7 @@ const LoginPage = () => {
     <div className="section-padding bg-dark relative">
       {/* Background Elements */}
       <div className="absolute inset-0 bg-grid-pattern opacity-20"></div>
-      
+
       <div className="container-custom relative z-10">
         <div className="max-w-md mx-auto">
           <AnimatedSection>
@@ -88,12 +93,17 @@ const LoginPage = () => {
                   </div>
                 </div>
                 <h1 className="text-2xl font-bold mb-2">Welcome Back</h1>
-                <p className="text-gray-700">Sign in to access your SBM Forex Academy account</p>
+                <p className="text-gray-700">
+                  Sign in to access your SBM Forex Academy account
+                </p>
               </div>
-              
+
               <form onSubmit={handleSubmit} className="space-y-6">
                 <div>
-                  <label htmlFor="email" className="block text-sm font-medium text-gray-400 mb-1">
+                  <label
+                    htmlFor="email"
+                    className="block text-sm font-medium text-gray-400 mb-1"
+                  >
                     Email Address
                   </label>
                   <input
@@ -106,9 +116,12 @@ const LoginPage = () => {
                     required
                   />
                 </div>
-                
+
                 <div>
-                  <label htmlFor="password" className="block text-sm font-medium text-gray-400 mb-1">
+                  <label
+                    htmlFor="password"
+                    className="block text-sm font-medium text-gray-400 mb-1"
+                  >
                     Password
                   </label>
                   <div className="relative">
@@ -130,7 +143,7 @@ const LoginPage = () => {
                     </button>
                   </div>
                 </div>
-                
+
                 <div className="flex items-center justify-between">
                   <div className="flex items-center">
                     <input
@@ -141,7 +154,10 @@ const LoginPage = () => {
                       onChange={handleChange}
                       className="h-4 w-4 accent-gold rounded border-gray-600 focus:ring-2 focus:ring-gold/50"
                     />
-                    <label htmlFor="rememberMe" className="ml-2 block text-sm text-gray-400">
+                    <label
+                      htmlFor="rememberMe"
+                      className="ml-2 block text-sm text-gray-400"
+                    >
                       Remember me
                     </label>
                   </div>
@@ -151,7 +167,7 @@ const LoginPage = () => {
                     </a>
                   </div>
                 </div>
-                
+
                 <button
                   type="submit"
                   className="w-full bg-gradient-to-r from-gold to text-white py-3 px-4 rounded-md font-medium hover:shadow-glow transition-all duration-300"
@@ -159,9 +175,11 @@ const LoginPage = () => {
                   Sign In
                 </button>
               </form>
-              
+
               <div className="mt-8 pt-6 border-t border-gray-700 text-center">
-                <p className="text-gray-400 text-sm mb-2">Don't have an account?</p>
+                <p className="text-gray-400 text-sm mb-2">
+                  Don't have an account?
+                </p>
                 <Link
                   to="/register"
                   className="w-full inline-block bg-dark-lighter border border-gold text-gold py-2 px-4 rounded-md font-medium hover:bg-gold hover:text-white transition-colors"

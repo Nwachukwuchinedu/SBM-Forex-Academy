@@ -56,11 +56,11 @@ const GetStartedSection = () => {
               ))}
             </div>
             
-            {/* <div className="mt-10">
+            <div className="mt-10">
               <Link to="/register" className="btn btn-primary">
                 Start Your Journey Today
               </Link>
-            </div> */}
+            </div>
           </AnimatedSection>
           
           <AnimatedSection delay={0.2}>

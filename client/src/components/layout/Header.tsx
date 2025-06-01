@@ -76,14 +76,14 @@ const Header = () => {
                 </Link>
               ))}
 
-              {/* <div className="ml-4 flex items-center gap-4">
+              <div className="ml-4 flex items-center gap-4">
                 <Link to="/login" className="btn btn-outline py-2 px-5">
                   Login
                 </Link>
                 <Link to="/register" className="btn btn-primary py-2 px-5">
                   Register
                 </Link>
-              </div> */}
+              </div>
             </div>
 
             {/* Mobile Menu Button */}
@@ -121,14 +121,14 @@ const Header = () => {
                     {link.name}
                   </Link>
                 ))}
-                {/* <div className="pt-4 flex flex-col gap-3 border-t border-gray-700">
+                <div className="pt-4 flex flex-col gap-3 border-t border-gray-700">
                   <Link to="/login" className="btn btn-outline py-2 w-full">
                     Login
                   </Link>
                   <Link to="/register" className="btn btn-primary py-2 w-full">
                     Register
                   </Link>
-                </div> */}
+                </div>
               </div>
             </motion.div>
           )}
