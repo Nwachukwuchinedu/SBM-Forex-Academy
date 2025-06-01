@@ -18,6 +18,7 @@ import ProtectedRoute from "./utils/ProtectedRoute";
 import DashboardPage from "./pages/auth/Dashboard";
 import AuthServicesPage from "./pages/auth/Services";
 import ServicePlanPage from "./components/auth/ServicePlanPage";
+import AccountSettingPage from "./pages/auth/AccountSetting";
 
 function AppContent() {
   const location = useLocation();
@@ -56,6 +57,14 @@ function AppContent() {
             element={
               <ProtectedRoute>
                 <ServicePlanPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/dashboard/account"
+            element={
+              <ProtectedRoute>
+                <AccountSettingPage />
               </ProtectedRoute>
             }
           />
