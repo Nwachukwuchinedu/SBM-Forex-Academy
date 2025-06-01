@@ -132,62 +132,62 @@ const ServicesPage = () => {
         },
       ],
     },
-    // {
-    //   id: 'management',
-    //   title: 'SBM Account Management',
-    //   subtitle: 'Professional Account Management',
-    //   description: 'Let our team of experienced traders manage your account and generate consistent profits while you focus on other priorities.',
-    //   icon: BarChart3,
-    //   color: 'gold',
-    //   features: [
-    //     'Minimum equity: $900',
-    //     'Synthetic indices focus',
-    //     'Professional risk management',
-    //     'Regular performance reporting',
-    //     'Transparent profit sharing',
-    //     'No hidden fees or charges',
-    //     'Flexible withdrawal options',
-    //     'Customizable risk profiles'
-    //   ],
-    //   pricing: [
-    //     {
-    //       name: 'Conservative',
-    //       price: '30%',
-    //       period: 'of profits',
-    //       features: [
-    //         'Lower risk approach',
-    //         'Focus on capital preservation',
-    //         '5-15% monthly target',
-    //         'Weekly performance reports',
-    //         '$900 minimum investment'
-    //       ]
-    //     },
-    //     {
-    //       name: 'Balanced',
-    //       price: '35%',
-    //       period: 'of profits',
-    //       features: [
-    //         'Moderate risk approach',
-    //         'Balance of growth and safety',
-    //         '15-25% monthly target',
-    //         'Weekly performance reports',
-    //         '$1,500 minimum investment'
-    //       ]
-    //     },
-    //     {
-    //       name: 'Aggressive',
-    //       price: '40%',
-    //       period: 'of profits',
-    //       features: [
-    //         'Higher risk approach',
-    //         'Focus on maximum growth',
-    //         '25-40% monthly target',
-    //         'Daily performance reports',
-    //         '$3,000 minimum investment'
-    //       ]
-    //     }
-    //   ]
-    // }
+    {
+      id: 'management',
+      title: 'SBM Account Management',
+      subtitle: 'Professional Account Management',
+      description: 'Let our team of experienced traders manage your account and generate consistent profits while you focus on other priorities.',
+      icon: BarChart3,
+      color: 'gold',
+      features: [
+        'Minimum equity: $900',
+        'Synthetic indices focus',
+        'Professional risk management',
+        'Regular performance reporting',
+        'Transparent profit sharing',
+        'No hidden fees or charges',
+        'Flexible withdrawal options',
+        'Customizable risk profiles'
+      ],
+      pricing: [
+        {
+          name: 'Conservative',
+          price: '30%',
+          period: 'of profits',
+          features: [
+            'Lower risk approach',
+            'Focus on capital preservation',
+            '5-15% monthly target',
+            'Weekly performance reports',
+            '$900 minimum investment'
+          ]
+        },
+        {
+          name: 'Balanced',
+          price: '35%',
+          period: 'of profits',
+          features: [
+            'Moderate risk approach',
+            'Balance of growth and safety',
+            '15-25% monthly target',
+            'Weekly performance reports',
+            '$1,500 minimum investment'
+          ]
+        },
+        {
+          name: 'Aggressive',
+          price: '40%',
+          period: 'of profits',
+          features: [
+            'Higher risk approach',
+            'Focus on maximum growth',
+            '25-40% monthly target',
+            'Daily performance reports',
+            '$3,000 minimum investment'
+          ]
+        }
+      ]
+    }
   ];
 
   return (
@@ -310,7 +310,7 @@ const ServicesPage = () => {
                                   </li>
                                 ))}
                               </ul>
-                              {/* <Link
+                              <Link
                                 to="/register"
                                 className={`w-full py-2 px-4 rounded text-center inline-block ${
                                   i === 1
@@ -319,7 +319,7 @@ const ServicesPage = () => {
                                 } transition-colors`}
                               >
                                 Get Started
-                              </Link> */}
+                              </Link>
                             </div>
                           ))}
                         </div>
@@ -431,10 +431,10 @@ const ServicesPage = () => {
               </p>
 
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                {/* <Link to="/register" className="btn btn-primary">
+                <Link to="/register" className="btn btn-primary">
                   Get Started
                   <ArrowRight className="ml-2 h-5 w-5" />
-                </Link> */}
+                </Link>
                 <Link to="/faq" className="btn btn-outline">
                   More Questions?
                 </Link>
