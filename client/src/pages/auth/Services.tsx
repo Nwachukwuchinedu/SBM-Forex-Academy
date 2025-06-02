@@ -96,7 +96,7 @@ const AuthServicesPage = () => {
       <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60">
         <div className="bg-dark-lighter rounded-lg shadow-lg p-8 max-w-md w-full border border-gray-700">
           <h3 className="text-xl font-bold text-gold mb-4">Consent Required</h3>
-          <p className="text-gray-300 mb-6">
+          <p className="text-gray-400 mb-6">
             By subscribing to{" "}
             <span className="font-semibold text-gold">{selectedPlan.name}</span>
             , you acknowledge and agree that you understand the risks involved
