@@ -185,7 +185,7 @@ const Footer = () => {
               <li className="flex items-start gap-3">
                 <MapPin className="h-5 w-5 text-gold mt-0.5" />
                 <span className="text-gray-400">
-                  123 Trading Street, Financial District, Lagos 10004
+                  Royal pine estate orchid road Lekki-Epe expressway, Lagos, Nigeria
                 </span>
               </li>
             </ul>
