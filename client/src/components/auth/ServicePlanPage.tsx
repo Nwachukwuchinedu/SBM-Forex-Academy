@@ -193,17 +193,26 @@ const ServicePlanPage = () => {
                 {user.firstName.charAt(0).toUpperCase()}
               </button>
               {menuOpen && (
-                <div className="absolute right-0 mt-2 w-44 bg-dark-lighter rounded shadow-lg border border-gray-700 z-50">
+                <div
+                  className="absolute right-0 mt-2 w-44 bg-dark-lighter rounded shadow-lg border border-gray-700 z-50"
+                  // Do NOT add onClick or onMouseDown here!
+                >
                   <Link
                     to="/dashboard/account"
                     className="flex items-center gap-2 px-4 py-2 text-gray-900 hover:bg-gold/10 transition"
-                    onClick={() => setMenuOpen(false)}
+                    onMouseDown={(e) => {
+                      e.stopPropagation();
+                      setMenuOpen(false);
+                    }}
                   >
                     <Settings className="h-4 w-4" /> Account Setting
                   </Link>
                   <button
                     className="flex items-center gap-2 px-4 py-2 w-full text-left text-red-600 hover:bg-gold/10 transition"
-                    onClick={handleLogout}
+                    onMouseDown={(e) => {
+                      e.stopPropagation();
+                      handleLogout();
+                    }}
                   >
                     <LogOut className="h-4 w-4" /> Logout
                   </button>
@@ -235,7 +244,10 @@ const ServicePlanPage = () => {
                   </Link>
                   <button
                     className="flex items-center gap-2 px-4 py-2 w-full text-left text-red-600 hover:bg-gold/10 transition"
-                    onClick={handleLogout}
+                    onMouseDown={(e) => {
+                      e.stopPropagation();
+                      handleLogout();
+                    }}
                   >
                     <LogOut className="h-4 w-4" /> Logout
                   </button>
