@@ -106,6 +106,10 @@ const AccountSettingPage = () => {
   // Handle password update
   const handlePasswordUpdate = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (passwordForm.newPassword.length < 6) {
+      toast.error("Password must be at least 6 characters long");
+      return;
+    }
     if (passwordForm.newPassword !== passwordForm.confirmPassword) {
       toast.error("New passwords do not match");
       return;
