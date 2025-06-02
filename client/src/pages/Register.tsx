@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Eye, EyeOff, CheckCircle } from "lucide-react";
 import AnimatedSection from "../components/ui/AnimatedSection";
 import { toast } from "react-hot-toast";
@@ -20,6 +20,7 @@ const RegisterPage = () => {
 
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const navigate = useNavigate();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value, type, checked } = e.target;
@@ -88,8 +89,9 @@ const RegisterPage = () => {
         confirmPassword: "",
         agreeToTerms: false,
       });
-      // Optionally redirect to dashboard or login
-      // navigate('/dashboard');
+
+      // Redirect to login page after successful registration
+      navigate("/login");
     } catch (err) {
       toast.error("Something went wrong. Please try again.");
     }
