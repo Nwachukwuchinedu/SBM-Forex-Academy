@@ -2,7 +2,7 @@ import { useParams, useNavigate, Link } from "react-router-dom";
 import { useEffect, useState, useRef } from "react";
 import { DollarSign, User, Settings, LogOut } from "lucide-react";
 
-const BTC_ADDRESS = "bc1qexamplebtcaddress1234567890";
+const TRON_ADDRESS = "TQh1bwxRLFoNdzhvKcYSqbUjmSXajwWApg"; // Update with your TRON address
 
 const allPlans = [
   {
@@ -30,24 +30,24 @@ const ServicePlanPage = () => {
   const navigate = useNavigate();
   const plan = allPlans.find((p) => p.id === planId);
 
-  const [btcRate, setBtcRate] = useState<number | null>(null);
+  const [tronRate, setTronRate] = useState<number | null>(null);
   const [copied, setCopied] = useState(false);
   const [user, setUser] = useState<{ firstName: string } | null>(null);
   const [menuOpen, setMenuOpen] = useState(false);
   const avatarRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    // Fetch BTC/USD rate from CoinGecko
+    // Fetch TRON/USD rate from CoinGecko
     fetch(
-      "https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd"
+      "https://api.coingecko.com/api/v3/simple/price?ids=tron&vs_currencies=usd"
     )
       .then((res) => res.json())
       .then((data) => {
-        if (data.bitcoin && data.bitcoin.usd) {
-          setBtcRate(1 / data.bitcoin.usd);
+        if (data.tron && data.tron.usd) {
+          setTronRate(1 / data.tron.usd);
         }
       })
-      .catch(() => setBtcRate(null));
+      .catch(() => setTronRate(null));
   }, []);
 
   // Fetch user info for avatar
@@ -91,24 +91,24 @@ const ServicePlanPage = () => {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [menuOpen]);
 
-  function getBtcPrice(price: number | string) {
-    if (!btcRate) return "-";
+  function getTronPrice(price: number | string) {
+    if (!tronRate) return "-";
     if (typeof price === "string" && price.includes("-")) {
       // Handle price ranges
       const [min, max] = price.split("-").map((p) => parseFloat(p.trim()));
       if (isNaN(min) || isNaN(max)) return "-";
-      return `${(min * btcRate).toFixed(6)} - ${(max * btcRate).toFixed(
-        6
-      )} BTC`;
+      return `${(min * tronRate).toFixed(2)} - ${(max * tronRate).toFixed(
+        2
+      )} TRX`;
     }
     const num = typeof price === "number" ? price : parseFloat(price);
     if (isNaN(num)) return "-";
-    return `${(num * btcRate).toFixed(6)} BTC`;
+    return `${(num * tronRate).toFixed(2)} TRX`;
   }
 
   const handleCopy = async () => {
     try {
-      await navigator.clipboard.writeText(BTC_ADDRESS);
+      await navigator.clipboard.writeText(TRON_ADDRESS);
       setCopied(true);
       setTimeout(() => setCopied(false), 1500);
     } catch {
@@ -195,7 +195,6 @@ const ServicePlanPage = () => {
               {menuOpen && (
                 <div
                   className="absolute right-0 mt-2 w-44 bg-dark-lighter rounded shadow-lg border border-gray-700 z-50"
-                  // Do NOT add onClick or onMouseDown here!
                 >
                   <Link
                     to="/dashboard/account"
@@ -264,14 +263,14 @@ const ServicePlanPage = () => {
               ${plan.price}
             </div>
             <div className="text-lg font-semibold text-gray-400 mb-2">
-              ≈ {btcRate ? getBtcPrice(plan.price) : "Loading..."}
+              ≈ {tronRate ? getTronPrice(plan.price) : "Loading..."}
             </div>
             <div className="text-sm text-gray-400 mb-4">{plan.duration}</div>
             <h2 className="text-lg font-semibold text-gold mb-2">
               Payment Options
             </h2>
             <div className="mb-4">
-              <div className="text-gray-300 mb-2">
+              <div className="text-gray-400 mb-2">
                 <span className="font-semibold">Bank Account:</span>
                 <br />
                 Account Name: SBM Forex Academy
@@ -280,10 +279,10 @@ const ServicePlanPage = () => {
                 <br />
                 Bank: Example Bank
               </div>
-              <div className="text-gray-300 mb-2">
-                <span className="font-semibold">BTC Wallet:</span>
+              <div className="text-gray-400 mb-2">
+                <span className="font-semibold">TRON Wallet:</span>
                 <br />
-                <span className="font-mono select-all">{BTC_ADDRESS}</span>
+                <span className="font-mono select-all">{TRON_ADDRESS}</span>
                 <button
                   className="ml-2 px-2 py-1 text-xs rounded bg-gold text-dark font-semibold hover:bg-amber-400 transition"
                   onClick={handleCopy}
@@ -292,7 +291,7 @@ const ServicePlanPage = () => {
                   {copied ? "Copied!" : "Copy"}
                 </button>
               </div>
-              <div className="text-gray-300 mt-4">
+              <div className="text-gray-400 mt-4">
                 <span className="font-semibold text-gold">
                   After payment, send proof of payment to WhatsApp:
                 </span>
