@@ -25,7 +25,7 @@ export const registerAdmin = async (req, res) => {
         admin: { id: admin._id, username, email },
       });
   } catch (err) {
-    res.status(500).json({ message: "Server error" });
+    res.status(500).json({ message: `Server error: ${err.message}` });
   }
 };
 
