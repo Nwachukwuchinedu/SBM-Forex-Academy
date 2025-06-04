@@ -19,11 +19,16 @@ import DashboardPage from "./pages/auth/Dashboard";
 import AuthServicesPage from "./pages/auth/Services";
 import ServicePlanPage from "./components/auth/ServicePlanPage";
 import AccountSettingPage from "./pages/auth/AccountSetting";
+import AdminLogin from "./pages/admin/AdminLogin";
+import AdminDashboard from "./pages/admin/AdminDashboard";
+
 
 function AppContent() {
   const location = useLocation();
   // List of routes where you want to hide Header and Footer
-  const hideLayout = location.pathname.startsWith("/dashboard");
+  const hideLayout =
+    location.pathname.startsWith("/dashboard") ||
+    location.pathname.startsWith("/admin");
 
   return (
     <div className="flex flex-col min-h-screen bg-gray-900 text-white font-montserrat">
@@ -68,6 +73,8 @@ function AppContent() {
               </ProtectedRoute>
             }
           />
+          <Route path="/admin/login" element={<AdminLogin />} />
+          <Route path="/admin/dashboard" element={<AdminDashboard />} />
         </Routes>
       </main>
       {!hideLayout && <Footer />}
