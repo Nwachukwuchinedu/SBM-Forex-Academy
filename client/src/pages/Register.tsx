@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Eye, EyeOff, CheckCircle } from "lucide-react";
+import { Eye, EyeOff, CheckCircle, X } from "lucide-react";
 import AnimatedSection from "../components/ui/AnimatedSection";
 import { toast } from "react-hot-toast";
 
@@ -20,6 +20,7 @@ const RegisterPage = () => {
 
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [showTerms, setShowTerms] = useState(false); // <-- Add state for modal
   const navigate = useNavigate();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -99,6 +100,146 @@ const RegisterPage = () => {
 
   return (
     <div className="section-padding bg-dark relative">
+      {/* Terms of Service & Privacy Policy Modal */}
+      {showTerms && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70">
+          <div className="bg-dark-lighter max-w-2xl w-full rounded-lg shadow-lg p-8 relative border border-gray-700 overflow-y-auto max-h-[90vh]">
+            <button
+              className="absolute top-3 right-3 text-gray-400 hover:text-gold"
+              onClick={() => setShowTerms(false)}
+              aria-label="Close"
+            >
+              <X size={24} />
+            </button>
+            <h2 className="text-xl font-bold mb-4 text-gold">
+              SBM Forex Trading Academy Disclaimer and Risk Warning
+            </h2>
+            <div className="text-gray-500 text-sm space-y-4 max-h-[70vh] overflow-y-auto pr-2">
+              <div>
+                <strong>Important Notice</strong>
+                <p>
+                  Before engaging with SBM Forex Trading Academy's services,
+                  including mentorship programs, trading signals, or investment
+                  opportunities, please carefully read, understand, and accept the
+                  terms and conditions outlined below. Trading in Forex and other
+                  financial markets involves significant risks, and you should
+                  carefully consider your financial situation, investment
+                  objectives, and risk tolerance before participating.
+                </p>
+              </div>
+              <div>
+                <strong>Risk Disclosure</strong>
+                <ul className="list-disc ml-5">
+                  <li>
+                    <b>Trading Risks:</b> Trading in Forex and other financial
+                    markets involves substantial risks, including market
+                    volatility, liquidity risks, and the risk of losing your
+                    entire investment.
+                  </li>
+                  <li>
+                    <b>No Guarantee of Success:</b> Our services are designed to
+                    provide educational content, trading signals, and guidance, but
+                    they are not a guarantee of success. Past performance is not
+                    indicative of future results.
+                  </li>
+                  <li>
+                    <b>Investment Risk:</b> You should only invest money that you
+                    can afford to lose. We will not be responsible for any losses
+                    or damages resulting from your trading decisions.
+                  </li>
+                </ul>
+              </div>
+              <div>
+                <strong>Disclaimer</strong>
+                <ul className="list-disc ml-5">
+                  <li>
+                    <b>Educational and Informational Content:</b> Our services
+                    provide educational content, trading signals, and guidance, and
+                    should not be considered as investment advice or a solicitation
+                    to trade.
+                  </li>
+                  <li>
+                    <b>No Fiduciary Relationship:</b> Our relationship with you
+                    is that of a service provider and client, and we do not owe
+                    you any fiduciary duties.
+                  </li>
+                  <li>
+                    <b>Independent Trading Decisions:</b> You are responsible for
+                    making your own trading decisions, and you should not rely
+                    solely on the information provided by us.
+                  </li>
+                </ul>
+              </div>
+              <div>
+                <strong>Investor and Signal User Acknowledgement</strong>
+                <ul className="list-disc ml-5">
+                  <li>
+                    <b>Assumption of Risk:</b> By investing or using our trading
+                    signals, you acknowledge that you are aware of the risks
+                    involved in trading in Forex and other financial markets, and
+                    you assume full responsibility for any losses or damages
+                    resulting from your trading decisions.
+                  </li>
+                  <li>
+                    <b>Due Diligence:</b> You acknowledge that you have conducted
+                    your own due diligence on our services and understand the risks
+                    and potential rewards.
+                  </li>
+                </ul>
+              </div>
+              <div>
+                <strong>Privacy Policy</strong>
+                <ul className="list-disc ml-5">
+                  <li>
+                    <b>Confidentiality:</b> We respect your privacy and will keep
+                    your personal and financial information confidential. We will
+                    not share your information with any third parties without your
+                    consent.
+                  </li>
+                  <li>
+                    <b>Data Protection:</b> We will take reasonable steps to
+                    protect your personal and financial information from
+                    unauthorized access, disclosure, or destruction.
+                  </li>
+                </ul>
+              </div>
+              <div>
+                <strong>Terms of Service</strong>
+                <ul className="list-disc ml-5">
+                  <li>
+                    <b>Acknowledgement:</b> By engaging with our services, you
+                    acknowledge that you have read, understood, and agreed to these
+                    terms and conditions.
+                  </li>
+                  <li>
+                    <b>Release of Liability:</b> You release and hold harmless SBM
+                    Forex Trading Academy, its officers, directors, employees, and
+                    agents from any and all claims, demands, and causes of action
+                    arising from or related to your use of our services.
+                  </li>
+                </ul>
+              </div>
+              <div>
+                <strong>Important Notice</strong>
+                <p>
+                  Our services are not a solicitation or offer to trade, and are
+                  not intended to provide personalized investment advice. You
+                  should not rely solely on the information provided by us in
+                  making your trading decisions. You should consult with a
+                  financial advisor or other professional before making any
+                  investment decisions.
+                </p>
+                <p>
+                  By engaging with our services, you confirm that you have read
+                  and understood these terms and conditions. If you have any
+                  questions or concerns, please contact us before proceeding.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Background Elements */}
       <div className="absolute inset-0 bg-grid-pattern opacity-20"></div>
 
@@ -306,13 +447,23 @@ const RegisterPage = () => {
                     <div className="ml-3 text-sm">
                       <label htmlFor="agreeToTerms" className="text-gray-400">
                         I agree to the{" "}
-                        <a href="#" className="text-gold hover:underline">
+                        <button
+                          type="button"
+                          className="text-gold hover:underline bg-transparent p-0 m-0 border-0"
+                          style={{ textDecoration: "underline" }}
+                          onClick={() => setShowTerms(true)}
+                        >
                           Terms of Service
-                        </a>{" "}
+                        </button>{" "}
                         and{" "}
-                        <a href="#" className="text-gold hover:underline">
+                        <button
+                          type="button"
+                          className="text-gold hover:underline bg-transparent p-0 m-0 border-0"
+                          style={{ textDecoration: "underline" }}
+                          onClick={() => setShowTerms(true)}
+                        >
                           Privacy Policy
-                        </a>
+                        </button>
                       </label>
                     </div>
                   </div>
