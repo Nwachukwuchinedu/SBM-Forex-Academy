@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom"; // <-- add useNavigate
-import { Eye, EyeOff, TrendingUp } from "lucide-react";
+import { Eye, EyeOff, TrendingUp, Mail, AlertCircle } from "lucide-react";
 import AnimatedSection from "../components/ui/AnimatedSection";
 import { toast } from "react-hot-toast";
 
@@ -18,6 +18,9 @@ const LoginPage = () => {
   });
 
   const [showPassword, setShowPassword] = useState(false);
+  const [showVerificationPrompt, setShowVerificationPrompt] = useState(false);
+  const [unverifiedUser, setUnverifiedUser] = useState<any>(null);
+  const [isResending, setIsResending] = useState(false);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value, type, checked } = e.target;
@@ -25,6 +28,15 @@ const LoginPage = () => {
       ...prev,
       [name]: type === "checkbox" ? checked : value,
     }));
+  };
+
+  // Function to clear all authentication-related data from localStorage
+  const clearAuthData = () => {
+    localStorage.removeItem("accessToken");
+    localStorage.removeItem("refreshToken");
+    localStorage.removeItem("user");
+    // You can add other auth-related keys here if needed
+    console.log("Previous authentication data cleared");
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -35,6 +47,9 @@ const LoginPage = () => {
       toast.error("Please fill in all required fields");
       return;
     }
+
+    // Clear any existing authentication data before attempting login
+    clearAuthData();
 
     try {
       const res = await fetch(
@@ -56,9 +71,19 @@ const LoginPage = () => {
         return;
       }
 
-      // Store tokens
+      // Check if email is verified
+      if (!data.user.isEmailVerified) {
+        setUnverifiedUser(data.user);
+        setShowVerificationPrompt(true);
+        toast.error("Please verify your email address before accessing your account");
+        return;
+      }
+
+      // Store new tokens only if email is verified
       localStorage.setItem("accessToken", data.accessToken);
       localStorage.setItem("refreshToken", data.refreshToken);
+      localStorage.setItem("user", JSON.stringify(data.user));
+      console.log("New authentication data stored");
 
       toast.success("Login successful! Welcome back.");
 
@@ -72,10 +97,115 @@ const LoginPage = () => {
         rememberMe: false,
       });
     } catch (err) {
+      console.error("Login error:", err);
       toast.error("Something went wrong. Please try again.");
     }
   };
 
+  const handleResendVerification = async () => {
+    if (!unverifiedUser?.email) return;
+
+    setIsResending(true);
+    try {
+      const res = await fetch(
+        `${import.meta.env.VITE_API_BASE_URL}/api/auth/resend-verification`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email: unverifiedUser.email }),
+        }
+      );
+
+      const data = await res.json();
+
+      if (res.ok) {
+        toast.success("Verification email sent! Please check your inbox.");
+      } else {
+        toast.error(data.message || "Failed to send verification email");
+      }
+    } catch (err) {
+      console.error("Resend verification error:", err);
+      toast.error("Failed to send verification email. Please try again.");
+    } finally {
+      setIsResending(false);
+    }
+  };
+
+  const handleBackToLogin = () => {
+    setShowVerificationPrompt(false);
+    setUnverifiedUser(null);
+    setFormData({
+      email: "",
+      password: "",
+      rememberMe: false,
+    });
+  };
+
+  // Verification Prompt Component
+  if (showVerificationPrompt) {
+    return (
+      <div className="section-padding bg-dark relative">
+        <div className="absolute inset-0 bg-grid-pattern opacity-20"></div>
+        <div className="container-custom relative z-10">
+          <div className="max-w-md mx-auto">
+            <AnimatedSection>
+              <div className="card-glass p-8 border border-gray-700/30">
+                <div className="text-center mb-8">
+                  <div className="mx-auto w-16 h-16 mb-4 relative">
+                    <div className="absolute inset-0 bg-gradient-to-r from-amber-400 to-orange-400 rounded-full blur-sm opacity-70"></div>
+                    <div className="relative bg-white rounded-full p-4 flex items-center justify-center">
+                      <Mail className="text-amber-500 h-8 w-8" />
+                    </div>
+                  </div>
+                  <h1 className="text-2xl font-bold mb-2">Email Verification Required</h1>
+                  <p className="text-gray-700">
+                    Please verify your email address to access your account
+                  </p>
+                </div>
+
+                <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 mb-6">
+                  <div className="flex items-start space-x-3">
+                    <AlertCircle className="h-5 w-5 text-amber-500 mt-0.5 flex-shrink-0" />
+                    <div className="text-sm text-amber-700">
+                      <p className="font-medium mb-1">Account Found</p>
+                      <p>
+                        We found your account ({unverifiedUser?.email}), but your email address hasn't been verified yet.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="space-y-4">
+                  <button
+                    onClick={handleResendVerification}
+                    disabled={isResending}
+                    className="w-full bg-gradient-to-r from-gold to-amber-400 text-white py-3 px-4 rounded-md font-medium hover:shadow-glow transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {isResending ? "Sending..." : "Resend Verification Email"}
+                  </button>
+
+                  <button
+                    onClick={handleBackToLogin}
+                    className="w-full bg-dark-lighter border border-gray-700 text-gray-700 py-3 px-4 rounded-md font-medium hover:bg-gray-100 transition-colors"
+                  >
+                    Back to Login
+                  </button>
+                </div>
+
+                <div className="mt-6 pt-4 border-t border-gray-200 text-center">
+                  <p className="text-xs text-gray-500">
+                    Check your spam folder if you don't see the email.
+                  </p>
+                </div>
+              </div>
+            </AnimatedSection>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Regular Login Form
   return (
     <div className="section-padding bg-dark relative">
       {/* Background Elements */}
