@@ -21,7 +21,7 @@ import ServicePlanPage from "./components/auth/ServicePlanPage";
 import AccountSettingPage from "./pages/auth/AccountSetting";
 import AdminLogin from "./pages/admin/AdminLogin";
 import AdminDashboard from "./pages/admin/AdminDashboard";
-
+import VerifyEmail from "./pages/VerifyEmail";
 
 function AppContent() {
   const location = useLocation();
@@ -41,6 +41,7 @@ function AppContent() {
           <Route path="/faq" element={<FAQPage />} />
           <Route path="/register" element={<RegisterPage />} />
           <Route path="/login" element={<LoginPage />} />
+          
           <Route
             path="/dashboard/*"
             element={
@@ -75,6 +76,7 @@ function AppContent() {
           />
           <Route path="/admin/login" element={<AdminLogin />} />
           <Route path="/admin/dashboard" element={<AdminDashboard />} />
+          <Route path="/verify-email" element={<VerifyEmail />} />
         </Routes>
       </main>
       {!hideLayout && <Footer />}
