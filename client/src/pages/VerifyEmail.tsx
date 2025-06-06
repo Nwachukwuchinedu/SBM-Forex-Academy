@@ -60,12 +60,17 @@ const VerifyEmail: React.FC = () => {
     try {
       console.log('Starting email verification with token:', verificationToken);
       
-      const response = await fetch(`http://localhost:5000/api/auth/verify-email?token=${verificationToken}`, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
+      const response = await fetch(
+        `${
+          import.meta.env.VITE_API_BASE_URL
+        }/api/auth/verify-email?token=${verificationToken}`,
+        {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
 
       const data = await response.json();
       console.log('Verification response:', { status: response.status, data });
@@ -124,13 +129,16 @@ const VerifyEmail: React.FC = () => {
     }
 
     try {
-      const response = await fetch('http://localhost:5000/api/auth/resend-verification', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ email: userInfo.email }),
-      });
+      const response = await fetch(
+        `${import.meta.env.VITE_API_BASE_URL}/api/auth/resend-verification`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ email: userInfo.email }),
+        }
+      );
 
       const data = await response.json();
       
