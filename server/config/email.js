@@ -35,11 +35,7 @@ export const sendVerificationEmail = async (email, token, firstName) => {
               Verify Email Address
             </a>
           </div>
-          <p style="color: #666; font-size: 14px;">
-            If the button doesn't work, copy and paste this link into your browser:
-            <br>
-            <a href="${verificationUrl}" style="color: #6b21a8;">${verificationUrl}</a>
-          </p>
+         
           <p style="color: #666; font-size: 14px;">
             This verification link will expire in 24 hours.
           </p>
