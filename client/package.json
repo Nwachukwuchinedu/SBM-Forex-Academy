@@ -6,8 +6,6 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "build:api": "tsc -p tsconfig.api.json",
-    "deploy": "npm run build:api && npm run build && vercel deploy",
     "lint": "eslint .",
     "preview": "vite preview"
   },
@@ -24,7 +22,6 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.9.1",
-    "@types/node": "^22.15.30",
     "@types/react": "^18.3.5",
     "@types/react-dom": "^18.3.0",
     "@vitejs/plugin-react": "^4.3.1",
