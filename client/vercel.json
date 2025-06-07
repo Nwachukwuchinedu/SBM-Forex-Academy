@@ -4,7 +4,7 @@
     { "source": "/(.*)", "destination": "/" }
   ],
   "functions": {
-    "api/sitemap.js": {
+    "api/sitemap.ts": {
       "memory": 1024,
       "maxDuration": 10
     }
