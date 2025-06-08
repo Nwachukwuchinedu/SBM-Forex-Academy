@@ -1,15 +1,73 @@
 import { useEffect } from "react";
+import { Helmet } from 'react-helmet-async';
 import { ArrowRight } from "lucide-react";
 import AnimatedSection from "../components/ui/AnimatedSection";
 import { Link } from "react-router-dom";
+import SchemaMarkup from '../components/seo/SchemaMarkup';
+import { ORGANIZATION_DATA } from '../data/schemaData';
+import { Course } from '../types/schema';
 
 const ServicesPage = () => {
   useEffect(() => {
     document.title = "Our Services - SBM Forex Academy";
   }, []);
 
+  const courseSchemas: Course[] = [
+    {
+      "@context": "https://schema.org",
+      "@type": "Course",
+      name: "Standard Forex Mentorship Program",
+      description: "Monthly access to expert trading insights, personalized support, and exclusive trading community access.",
+      provider: ORGANIZATION_DATA,
+      courseMode: "online",
+      educationalLevel: "beginner to advanced",
+      offers: {
+        "@type": "Offer",
+        price: "210",
+        priceCurrency: "USD",
+        availability: "https://schema.org/InStock"
+      }
+    },
+    {
+      "@context": "https://schema.org",
+      "@type": "Course",
+      name: "VIP Forex Mentorship Program",
+      description: "Comprehensive mentorship with physical training, accommodation, one-on-one coaching, and priority access to trading signals.",
+      provider: ORGANIZATION_DATA,
+      courseMode: "blended",
+      educationalLevel: "intermediate to advanced",
+      offers: {
+        "@type": "Offer",
+        price: "1000",
+        priceCurrency: "USD",
+        availability: "https://schema.org/InStock"
+      }
+    },
+    {
+      "@context": "https://schema.org",
+      "@type": "Course",
+      name: "Forex Trading Signals Service",
+      description: "Professional forex trading signals with expert analysis, market insights, and trade strategies.",
+      provider: ORGANIZATION_DATA,
+      courseMode: "online",
+      offers: {
+        "@type": "Offer",
+        price: "80",
+        priceCurrency: "USD",
+        availability: "https://schema.org/InStock"
+      }
+    }
+  ];
+
   return (
     <div>
+      <Helmet>
+        <title>Our Services - SBM Forex Academy</title>
+        <meta name="description" content="Explore our comprehensive forex services: mentorship programs, trading signals, and professional account management. Choose the perfect package for your trading journey." />
+      </Helmet>
+
+      <SchemaMarkup schema={courseSchemas} />
+
       {/* Mentorship Packages */}
       <section className="section-padding bg-dark">
         <div className="container-custom">
