@@ -13,6 +13,7 @@ import ServicesPage from "./pages/Services";
 import FAQPage from "./pages/FAQ";
 import RegisterPage from "./pages/Register";
 import LoginPage from "./pages/Login";
+import NotFoundPage from "./pages/NotFound";
 import ScrollToTop from "./utils/ScrollToTop";
 import { Toaster } from "react-hot-toast";
 import ProtectedRoute from "./utils/ProtectedRoute";
@@ -27,10 +28,13 @@ import OrganizationSchema from "./components/seo/OrganizationSchema";
 
 function AppContent() {
   const location = useLocation();
-  // List of routes where you want to hide Header and Footer
   const hideLayout =
     location.pathname.startsWith("/dashboard") ||
-    location.pathname.startsWith("/admin");
+    location.pathname.startsWith("/admin") ||
+    location.pathname === "/404" ||
+    !["/" , "/about", "/services", "/faq", "/register", "/login", "/verify-email"].some(path => 
+      location.pathname === path || location.pathname.startsWith(path)
+    );
 
   return (
     <div className="flex flex-col min-h-screen bg-gray-900 text-white font-montserrat">
@@ -44,6 +48,7 @@ function AppContent() {
           <Route path="/faq" element={<FAQPage />} />
           <Route path="/register" element={<RegisterPage />} />
           <Route path="/login" element={<LoginPage />} />
+          <Route path="/verify-email" element={<VerifyEmail />} />
           
           <Route
             path="/dashboard/*"
@@ -79,7 +84,9 @@ function AppContent() {
           />
           <Route path="/admin/login" element={<AdminLogin />} />
           <Route path="/admin/dashboard" element={<AdminDashboard />} />
-          <Route path="/verify-email" element={<VerifyEmail />} />
+          
+          {/* 404 Route - Must be last */}
+          <Route path="*" element={<NotFoundPage />} />
         </Routes>
       </main>
       {!hideLayout && <Footer />}
