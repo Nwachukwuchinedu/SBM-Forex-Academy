@@ -1,8 +1,11 @@
 import { useEffect, useState } from "react";
+import { Helmet } from 'react-helmet-async';
 import { ChevronDown, ChevronUp } from "lucide-react";
 import AnimatedSection from "../components/ui/AnimatedSection";
 import { motion, AnimatePresence } from "framer-motion";
 import { Link } from "react-router-dom";
+import SchemaMarkup from '../components/seo/SchemaMarkup';
+import { FAQPage as FAQPageSchema } from '../types/schema';
 
 const FAQPage = () => {
   useEffect(() => {
@@ -137,10 +140,24 @@ const FAQPage = () => {
     },
   ];
 
+  // Create FAQ schema from the data
+  const faqSchema: FAQPageSchema = {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    mainEntity: faqs.flatMap(category => 
+      category.questions.map(faq => ({
+        "@type": "Question",
+        name: faq.question,
+        acceptedAnswer: {
+          "@type": "Answer",
+          text: faq.answer
+        }
+      }))
+    )
+  };
+
   const [activeCategory, setActiveCategory] = useState(faqs[0].category);
-  const [openQuestions, setOpenQuestions] = useState<Record<string, boolean>>(
-    {}
-  );
+  const [openQuestions, setOpenQuestions] = useState<Record<string, boolean>>({});
 
   const toggleQuestion = (question: string) => {
     setOpenQuestions((prev) => ({
@@ -151,6 +168,13 @@ const FAQPage = () => {
 
   return (
     <div>
+      <Helmet>
+        <title>Frequently Asked Questions - SBM Forex Academy</title>
+        <meta name="description" content="Find answers to common questions about SBM Forex Academy's forex education, trading signals, account management, and mentorship programs." />
+      </Helmet>
+
+      <SchemaMarkup schema={faqSchema} />
+
       {/* Hero Section */}
       <section className="bg-hero-pattern bg-cover bg-center py-20 md:py-32 relative">
         <div className="absolute inset-0 bg-grid-pattern opacity-30"></div>
