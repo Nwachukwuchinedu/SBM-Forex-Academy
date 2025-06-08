@@ -4,6 +4,7 @@ import {
   Route,
   useLocation,
 } from "react-router-dom";
+import { HelmetProvider } from 'react-helmet-async';
 import Header from "./components/layout/Header";
 import Footer from "./components/layout/Footer";
 import HomePage from "./pages/Home";
@@ -22,6 +23,7 @@ import AccountSettingPage from "./pages/auth/AccountSetting";
 import AdminLogin from "./pages/admin/AdminLogin";
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import VerifyEmail from "./pages/VerifyEmail";
+import OrganizationSchema from "./components/seo/OrganizationSchema";
 
 function AppContent() {
   const location = useLocation();
@@ -32,6 +34,7 @@ function AppContent() {
 
   return (
     <div className="flex flex-col min-h-screen bg-gray-900 text-white font-montserrat">
+      <OrganizationSchema />
       {!hideLayout && <Header />}
       <main className="flex-grow">
         <Routes>
@@ -86,11 +89,13 @@ function AppContent() {
 
 function App() {
   return (
-    <Router>
-      <ScrollToTop />
-      <AppContent />
-      <Toaster position="top-center" />
-    </Router>
+    <HelmetProvider>
+      <Router>
+        <ScrollToTop />
+        <AppContent />
+        <Toaster position="top-center" />
+      </Router>
+    </HelmetProvider>
   );
 }
 
