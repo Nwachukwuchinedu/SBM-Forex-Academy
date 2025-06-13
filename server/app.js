@@ -6,6 +6,7 @@ import authRoutes from "./routes/auth.routes.js";
 import adminRoutes from "./routes/admin.routes.js";
 import connectDB from "./config/db.js";
 import sitemapRoutes from "./routes/sitemap.routes.js";
+import healthRoutes from "./routes/health.routes.js";
 
 connectDB();
 
@@ -16,6 +17,8 @@ app.use(cors());
 app.use(helmet());
 app.use(morgan("dev"));
 
+
+app.use("/api", healthRoutes);
 app.use("/api/auth", authRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/", sitemapRoutes); // This handles /sitemap.xml and /robots.txt
