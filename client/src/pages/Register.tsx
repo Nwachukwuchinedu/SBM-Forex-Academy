@@ -21,6 +21,7 @@ const RegisterPage = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [showTerms, setShowTerms] = useState(false); // <-- Add state for modal
+  const [isLoading, setIsLoading] = useState(false); // Add loading state
   const navigate = useNavigate();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -54,6 +55,8 @@ const RegisterPage = () => {
       toast.error("You must agree to the Terms of Service");
       return;
     }
+
+    setIsLoading(true); // Start loading
 
     try {
       const res = await fetch(
@@ -95,6 +98,8 @@ const RegisterPage = () => {
       navigate("/login");
     } catch (err) {
       toast.error("Something went wrong. Please try again.");
+    } finally {
+      setIsLoading(false); // Stop loading
     }
   };
 
@@ -120,10 +125,10 @@ const RegisterPage = () => {
                 <p>
                   Before engaging with SBM Forex Trading Academy's services,
                   including mentorship programs, trading signals, or investment
-                  opportunities, please carefully read, understand, and accept the
-                  terms and conditions outlined below. Trading in Forex and other
-                  financial markets involves significant risks, and you should
-                  carefully consider your financial situation, investment
+                  opportunities, please carefully read, understand, and accept
+                  the terms and conditions outlined below. Trading in Forex and
+                  other financial markets involves significant risks, and you
+                  should carefully consider your financial situation, investment
                   objectives, and risk tolerance before participating.
                 </p>
               </div>
@@ -138,14 +143,14 @@ const RegisterPage = () => {
                   </li>
                   <li>
                     <b>No Guarantee of Success:</b> Our services are designed to
-                    provide educational content, trading signals, and guidance, but
-                    they are not a guarantee of success. Past performance is not
-                    indicative of future results.
+                    provide educational content, trading signals, and guidance,
+                    but they are not a guarantee of success. Past performance is
+                    not indicative of future results.
                   </li>
                   <li>
-                    <b>Investment Risk:</b> You should only invest money that you
-                    can afford to lose. We will not be responsible for any losses
-                    or damages resulting from your trading decisions.
+                    <b>Investment Risk:</b> You should only invest money that
+                    you can afford to lose. We will not be responsible for any
+                    losses or damages resulting from your trading decisions.
                   </li>
                 </ul>
               </div>
@@ -154,9 +159,9 @@ const RegisterPage = () => {
                 <ul className="list-disc ml-5">
                   <li>
                     <b>Educational and Informational Content:</b> Our services
-                    provide educational content, trading signals, and guidance, and
-                    should not be considered as investment advice or a solicitation
-                    to trade.
+                    provide educational content, trading signals, and guidance,
+                    and should not be considered as investment advice or a
+                    solicitation to trade.
                   </li>
                   <li>
                     <b>No Fiduciary Relationship:</b> Our relationship with you
@@ -164,9 +169,9 @@ const RegisterPage = () => {
                     you any fiduciary duties.
                   </li>
                   <li>
-                    <b>Independent Trading Decisions:</b> You are responsible for
-                    making your own trading decisions, and you should not rely
-                    solely on the information provided by us.
+                    <b>Independent Trading Decisions:</b> You are responsible
+                    for making your own trading decisions, and you should not
+                    rely solely on the information provided by us.
                   </li>
                 </ul>
               </div>
@@ -176,14 +181,14 @@ const RegisterPage = () => {
                   <li>
                     <b>Assumption of Risk:</b> By investing or using our trading
                     signals, you acknowledge that you are aware of the risks
-                    involved in trading in Forex and other financial markets, and
-                    you assume full responsibility for any losses or damages
+                    involved in trading in Forex and other financial markets,
+                    and you assume full responsibility for any losses or damages
                     resulting from your trading decisions.
                   </li>
                   <li>
-                    <b>Due Diligence:</b> You acknowledge that you have conducted
-                    your own due diligence on our services and understand the risks
-                    and potential rewards.
+                    <b>Due Diligence:</b> You acknowledge that you have
+                    conducted your own due diligence on our services and
+                    understand the risks and potential rewards.
                   </li>
                 </ul>
               </div>
@@ -191,10 +196,10 @@ const RegisterPage = () => {
                 <strong>Privacy Policy</strong>
                 <ul className="list-disc ml-5">
                   <li>
-                    <b>Confidentiality:</b> We respect your privacy and will keep
-                    your personal and financial information confidential. We will
-                    not share your information with any third parties without your
-                    consent.
+                    <b>Confidentiality:</b> We respect your privacy and will
+                    keep your personal and financial information confidential.
+                    We will not share your information with any third parties
+                    without your consent.
                   </li>
                   <li>
                     <b>Data Protection:</b> We will take reasonable steps to
@@ -208,14 +213,15 @@ const RegisterPage = () => {
                 <ul className="list-disc ml-5">
                   <li>
                     <b>Acknowledgement:</b> By engaging with our services, you
-                    acknowledge that you have read, understood, and agreed to these
-                    terms and conditions.
+                    acknowledge that you have read, understood, and agreed to
+                    these terms and conditions.
                   </li>
                   <li>
-                    <b>Release of Liability:</b> You release and hold harmless SBM
-                    Forex Trading Academy, its officers, directors, employees, and
-                    agents from any and all claims, demands, and causes of action
-                    arising from or related to your use of our services.
+                    <b>Release of Liability:</b> You release and hold harmless
+                    SBM Forex Trading Academy, its officers, directors,
+                    employees, and agents from any and all claims, demands, and
+                    causes of action arising from or related to your use of our
+                    services.
                   </li>
                 </ul>
               </div>
@@ -322,7 +328,8 @@ const RegisterPage = () => {
                         name="firstName"
                         value={formData.firstName}
                         onChange={handleChange}
-                        className="w-full bg-dark-lighter border border-gray-700 rounded-md py-2 px-3 text-gray-900 focus:outline-none focus:ring-2 focus:ring-gold/50"
+                        disabled={isLoading}
+                        className="w-full bg-dark-lighter border border-gray-700 rounded-md py-2 px-3 text-gray-900 focus:outline-none focus:ring-2 focus:ring-gold/50 disabled:opacity-50 disabled:cursor-not-allowed"
                         required
                       />
                     </div>
@@ -340,7 +347,8 @@ const RegisterPage = () => {
                         name="lastName"
                         value={formData.lastName}
                         onChange={handleChange}
-                        className="w-full bg-dark-lighter border border-gray-700 rounded-md py-2 px-3 text-gray-900 focus:outline-none focus:ring-2 focus:ring-gold/50"
+                        disabled={isLoading}
+                        className="w-full bg-dark-lighter border border-gray-700 rounded-md py-2 px-3 text-gray-900 focus:outline-none focus:ring-2 focus:ring-gold/50 disabled:opacity-50 disabled:cursor-not-allowed"
                         required
                       />
                     </div>
@@ -359,7 +367,8 @@ const RegisterPage = () => {
                       name="email"
                       value={formData.email}
                       onChange={handleChange}
-                      className="w-full bg-dark-lighter border border-gray-700 rounded-md py-2 px-3 text-gray-900 focus:outline-none focus:ring-2 focus:ring-gold/50"
+                      disabled={isLoading}
+                      className="w-full bg-dark-lighter border border-gray-700 rounded-md py-2 px-3 text-gray-900 focus:outline-none focus:ring-2 focus:ring-gold/50 disabled:opacity-50 disabled:cursor-not-allowed"
                       required
                     />
                   </div>
@@ -378,13 +387,15 @@ const RegisterPage = () => {
                         name="password"
                         value={formData.password}
                         onChange={handleChange}
-                        className="w-full bg-dark-lighter border border-gray-700 rounded-md py-2 px-3 text-gray-900 focus:outline-none focus:ring-2 focus:ring-gold/50"
+                        disabled={isLoading}
+                        className="w-full bg-dark-lighter border border-gray-700 rounded-md py-2 px-3 text-gray-900 focus:outline-none focus:ring-2 focus:ring-gold/50 disabled:opacity-50 disabled:cursor-not-allowed"
                         required
                       />
                       <button
                         type="button"
-                        className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400"
+                        className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 disabled:opacity-50"
                         onClick={() => setShowPassword(!showPassword)}
+                        disabled={isLoading}
                       >
                         {showPassword ? (
                           <EyeOff size={18} />
@@ -413,15 +424,17 @@ const RegisterPage = () => {
                         name="confirmPassword"
                         value={formData.confirmPassword}
                         onChange={handleChange}
-                        className="w-full bg-dark-lighter border border-gray-700 rounded-md py-2 px-3 text-gray-900 focus:outline-none focus:ring-2 focus:ring-gold/50"
+                        disabled={isLoading}
+                        className="w-full bg-dark-lighter border border-gray-700 rounded-md py-2 px-3 text-gray-900 focus:outline-none focus:ring-2 focus:ring-gold/50 disabled:opacity-50 disabled:cursor-not-allowed"
                         required
                       />
                       <button
                         type="button"
-                        className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400"
+                        className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 disabled:opacity-50"
                         onClick={() =>
                           setShowConfirmPassword(!showConfirmPassword)
                         }
+                        disabled={isLoading}
                       >
                         {showConfirmPassword ? (
                           <EyeOff size={18} />
@@ -440,7 +453,8 @@ const RegisterPage = () => {
                         type="checkbox"
                         checked={formData.agreeToTerms}
                         onChange={handleChange}
-                        className="h-4 w-4 accent-gold rounded border-gray-600 focus:ring-2 focus:ring-gold/50"
+                        disabled={isLoading}
+                        className="h-4 w-4 accent-gold rounded border-gray-600 focus:ring-2 focus:ring-gold/50 disabled:opacity-50 disabled:cursor-not-allowed"
                         required
                       />
                     </div>
@@ -449,18 +463,20 @@ const RegisterPage = () => {
                         I agree to the{" "}
                         <button
                           type="button"
-                          className="text-gold hover:underline bg-transparent p-0 m-0 border-0"
+                          className="text-gold hover:underline bg-transparent p-0 m-0 border-0 disabled:opacity-50"
                           style={{ textDecoration: "underline" }}
                           onClick={() => setShowTerms(true)}
+                          disabled={isLoading}
                         >
                           Terms of Service
                         </button>{" "}
                         and{" "}
                         <button
                           type="button"
-                          className="text-gold hover:underline bg-transparent p-0 m-0 border-0"
+                          className="text-gold hover:underline bg-transparent p-0 m-0 border-0 disabled:opacity-50"
                           style={{ textDecoration: "underline" }}
                           onClick={() => setShowTerms(true)}
+                          disabled={isLoading}
                         >
                           Privacy Policy
                         </button>
@@ -470,9 +486,10 @@ const RegisterPage = () => {
 
                   <button
                     type="submit"
-                    className="w-full bg-gradient-to-r from-gold to text-white py-3 px-4 rounded-md font-medium hover:shadow-glow transition-all duration-300"
+                    disabled={isLoading}
+                    className="w-full bg-gold text-white py-3 px-4 rounded-md font-medium hover:shadow-glow transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    Create Account
+                    {isLoading ? "Creating Account..." : "Create Account"}
                   </button>
                 </form>
               </div>
