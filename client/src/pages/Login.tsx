@@ -21,6 +21,7 @@ const LoginPage = () => {
   const [showVerificationPrompt, setShowVerificationPrompt] = useState(false);
   const [unverifiedUser, setUnverifiedUser] = useState<any>(null);
   const [isResending, setIsResending] = useState(false);
+  const [isLoading, setIsLoading] = useState(false); // Add loading state
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value, type, checked } = e.target;
@@ -50,6 +51,8 @@ const LoginPage = () => {
 
     // Clear any existing authentication data before attempting login
     clearAuthData();
+
+    setIsLoading(true); // Start loading
 
     try {
       const res = await fetch(
@@ -99,6 +102,8 @@ const LoginPage = () => {
     } catch (err) {
       console.error("Login error:", err);
       toast.error("Something went wrong. Please try again.");
+    } finally {
+      setIsLoading(false); // Stop loading
     }
   };
 
@@ -242,7 +247,8 @@ const LoginPage = () => {
                     name="email"
                     value={formData.email}
                     onChange={handleChange}
-                    className="w-full bg-dark-lighter border border-gray-700 rounded-md py-2 px-3 text-gray-900 focus:outline-none focus:ring-2 focus:ring-gold/50"
+                    disabled={isLoading}
+                    className="w-full bg-dark-lighter border border-gray-700 rounded-md py-2 px-3 text-gray-900 focus:outline-none focus:ring-2 focus:ring-gold/50 disabled:opacity-50 disabled:cursor-not-allowed"
                     required
                   />
                 </div>
@@ -261,13 +267,15 @@ const LoginPage = () => {
                       name="password"
                       value={formData.password}
                       onChange={handleChange}
-                      className="w-full bg-dark-lighter border border-gray-700 rounded-md py-2 px-3 text-gray-900 focus:outline-none focus:ring-2 focus:ring-gold/50"
+                      disabled={isLoading}
+                      className="w-full bg-dark-lighter border border-gray-700 rounded-md py-2 px-3 text-gray-900 focus:outline-none focus:ring-2 focus:ring-gold/50 disabled:opacity-50 disabled:cursor-not-allowed"
                       required
                     />
                     <button
                       type="button"
-                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400"
+                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 disabled:opacity-50"
                       onClick={() => setShowPassword(!showPassword)}
+                      disabled={isLoading}
                     >
                       {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                     </button>
@@ -282,7 +290,8 @@ const LoginPage = () => {
                       type="checkbox"
                       checked={formData.rememberMe}
                       onChange={handleChange}
-                      className="h-4 w-4 accent-gold rounded border-gray-600 focus:ring-2 focus:ring-gold/50"
+                      disabled={isLoading}
+                      className="h-4 w-4 accent-gold rounded border-gray-600 focus:ring-2 focus:ring-gold/50 disabled:opacity-50 disabled:cursor-not-allowed"
                     />
                     <label
                       htmlFor="rememberMe"
@@ -300,9 +309,10 @@ const LoginPage = () => {
 
                 <button
                   type="submit"
-                  className="w-full bg-gradient-to-r from-gold to text-white py-3 px-4 rounded-md font-medium hover:shadow-glow transition-all duration-300"
+                  disabled={isLoading}
+                  className="w-full bg-gold text-white py-3 px-4 rounded-md font-medium hover:shadow-glow transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  Sign In
+                  {isLoading ? "Signing In..." : "Sign In"}
                 </button>
               </form>
 
