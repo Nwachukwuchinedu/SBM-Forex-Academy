@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Payment Error</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: #f5f5f5;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+    }
+    .container {
+      text-align: center;
+      background: white;
+      padding: 2rem;
+      border-radius: 10px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      max-width: 500px;
+      width: 90%;
+    }
+    .error-icon {
+      color: #FF9800;
+      font-size: 5rem;
+      margin-bottom: 1rem;
+    }
+    h1 {
+      color: #FF9800;
+      margin-bottom: 1rem;
+    }
+    p {
+      color: #555;
+      margin-bottom: 2rem;
+      line-height: 1.6;
+    }
+    .btn {
+      background-color: #FF9800;
+      color: white;
+      border: none;
+      padding: 12px 24px;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 1rem;
+      text-decoration: none;
+      display: inline-block;
+      transition: background-color 0.3s;
+    }
+    .btn:hover {
+      background-color: #e68a00;
+    }
+    .contact {
+      margin-top: 2rem;
+      font-size: 0.9rem;
+      color: #777;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="error-icon">⚠️</div>
+    <h1>Payment Error</h1>
+    <p>We encountered an error while processing your payment. Please try again later.</p>
+    <a href="/" class="btn">Return to Home</a>
+    <div class="contact">
+      <p>If the problem persists, please contact our support team.</p>
+    </div>
+  </div>
+</body>
+</html>

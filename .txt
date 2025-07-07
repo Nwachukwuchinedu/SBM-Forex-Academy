@@ -1,0 +1,72 @@
+Create a login page for admin, so that after login, the admin can see all the users in Dashboard
+
+
+### Admin Login
+POST http://localhost:5000/api/admin/login
+Content-Type: application/json
+
+{
+  "email": "admin@example.com",
+  "password": "adminpassword123"
+}
+
+GET http://localhost:5000/api/admin/me
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY4NDA2NDBmNWFlYWQ4NTUzMDM2NzIwMyIsInJvbGUiOiJhZG1pbiIsImlhdCI6MTc0OTA1MDM5OSwiZXhwIjoxNzQ5MTM2Nzk5fQ.p5uxXHuTrcGuf4GjEs7lzmsf2jKZMG-0o29rBTxJanU
+
+
+{
+  "_id": "6840640f5aead85530367203",
+  "username": "adminuser",
+  "email": "admin@example.com",
+  "role": "admin",
+  "__v": 0
+}
+
+
+GET http://localhost:5000/api/admin/users
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY4NDA2NDBmNWFlYWQ4NTUzMDM2NzIwMyIsInJvbGUiOiJhZG1pbiIsImlhdCI6MTc0OTA1MDM5OSwiZXhwIjoxNzQ5MTM2Nzk5fQ.p5uxXHuTrcGuf4GjEs7lzmsf2jKZMG-0o29rBTxJanU
+
+[
+  {
+    "_id": "683b0d4e1d35384dd9e258fb",
+    "firstName": "Chinedu",
+    "lastName": "Simeon",
+    "email": "chinedusimeon185@gmail.co",
+    "__v": 0
+  },
+  {
+    "_id": "683c9c3dcb2f1c99a863f961",
+    "firstName": "Jude",
+    "lastName": "Doe",
+    "email": "john@example.com",
+    "__v": 0
+  },
+  {
+    "_id": "683cea389988dcd5c042cda8",
+    "firstName": "Chinedu",
+    "lastName": "Simeon",
+    "email": "chinedusimeon185@gmail.com",
+    "__v": 0
+  },
+  {
+    "_id": "683d8de919afa8b09ee54117",
+    "firstName": "Sbdbdb",
+    "lastName": "S. Svdbs",
+    "email": "emmanuelsbm350@gmail.com",
+    "__v": 0
+  },
+  {
+    "_id": "68403f7ba0540e314f4693cf",
+    "firstName": "Clinton",
+    "lastName": "Obaraeze",
+    "email": "obaraezeclinton@gmail.com",
+    "__v": 0
+  },
+  {
+    "_id": "68403fe4a0540e314f4693df",
+    "firstName": "Agidi",
+    "lastName": "Emmanuel",
+    "email": "emmyzain123@gmail.com",
+    "__v": 0
+  }
+]

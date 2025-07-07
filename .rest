@@ -1,0 +1,92 @@
+POST http://localhost:5000/api/auth/register
+Content-Type: application/json
+
+{
+  "firstName": "John",
+  "lastName": "Doe",
+  "email": "chinedusimeon185@gmail.com",
+  "password": "123456"
+}
+
+###
+POST http://localhost:5000/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "john@example.co",
+  "password": "newpassword123"
+}
+
+###
+GET http://localhost:5000/api/auth/me
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY4M2M5YzNkY2IyZjFjOTlhODYzZjk2MSIsImlhdCI6MTc0ODgwMjYyNywiZXhwIjoxNzQ4ODAzNTI3fQ.FDDEEMhap8O3vQqBDNapA-ZApW7wJUgoGuEWuxBu0Mg
+
+###
+GET http://localhost:5000/api/auth/refresh
+Content-Type: application/json
+
+{
+  "refreshToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY4MzUzMzk4MmMzMDE3NGJiY2Q0ZDFkMiIsImlhdCI6MTc0ODMxNzA4MCwiZXhwIjoxNzQ4NDAzNDgwfQ.C0aouKJFFNF-vU0ZYnixsUzKAHCGhi-FvD0rJ8UNhLI"
+}
+
+###
+POST http://localhost:5000/api/auth/logout
+Content-Type: application/json
+
+{
+  "refreshToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY4M2M5YzNkY2IyZjFjOTlhODYzZjk2MSIsImlhdCI6MTc0ODgyMTE4NywiZXhwIjoxNzQ4OTA3NTg3fQ.0BdrHD6ULOg6XKst7EXJYXvCVgAksRVYirzmRgqLHmM"
+}
+
+### Update Profile
+PUT http://localhost:5000/api/auth/update-profile
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY4M2M5YzNkY2IyZjFjOTlhODYzZjk2MSIsImlhdCI6MTc0ODgxODM2NSwiZXhwIjoxNzQ4ODM5OTY1fQ.aPHqNxKnvX00Pk1VpXrh2ZeelYjNafvNnNYnF3XtDos
+
+{
+  "firstName": "Jude",
+  "lastName": "Doe"
+}
+
+### Update Password
+PUT http://localhost:5000/api/auth/update-password
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY4M2M5YzNkY2IyZjFjOTlhODYzZjk2MSIsImlhdCI6MTc0ODgxODM2NSwiZXhwIjoxNzQ4ODM5OTY1fQ.aPHqNxKnvX00Pk1VpXrh2ZeelYjNafvNnNYnF3XtDos
+
+{
+  "currentPassword": "newpassword123",
+  "newPassword": "newpassword123"
+}
+
+### Admin Register
+POST http://localhost:5000/api/admin/register
+Content-Type: application/json
+
+{
+  "username": "SBM Forex",
+  "email": "Emmanuelsbm350@gmail.com",
+  "password": "adminpassword123"
+}
+
+### Admin Login
+POST http://localhost:5000/api/admin/login
+Content-Type: application/json
+
+{
+  "email": "Emmanuelsbm350@gmail.com",
+  "password": "adminpassword123"
+}
+
+### Admin Profile (Get current admin info)
+GET http://localhost:5000/api/admin/me
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY4NDA2NDBmNWFlYWQ4NTUzMDM2NzIwMyIsInJvbGUiOiJhZG1pbiIsImlhdCI6MTc0OTA1MDM5OSwiZXhwIjoxNzQ5MTM2Nzk5fQ.p5uxXHuTrcGuf4GjEs7lzmsf2jKZMG-0o29rBTxJanU
+
+###
+### Admin Get All Users (Admin only)
+GET http://localhost:5000/api/admin/users
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY4NDA2NDBmNWFlYWQ4NTUzMDM2NzIwMyIsInJvbGUiOiJhZG1pbiIsImlhdCI6MTc0OTA1MDM5OSwiZXhwIjoxNzQ5MTM2Nzk5fQ.p5uxXHuTrcGuf4GjEs7lzmsf2jKZMG-0o29rBTxJanU
+
+###
+curl -X PUT http://localhost:5000/api/admin/password \
+-H "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY4NDA2NDBmNWFlYWQ4NTUzMDM2NzIwMyIsInJvbGUiOiJhZG1pbiIsImlhdCI6MTc0OTA1MDM5OSwiZXhwIjoxNzQ5MTM2Nzk5fQ.p5uxXHuTrcGuf4GjEs7lzmsf2jKZMG-0o29rBTxJanU" \
+-H "Content-Type: application/json" \
+-d '{"currentPassword":"adminpassword123","newPassword":"newStrongPassword!123"}'
