@@ -10,6 +10,7 @@ import Footer from "./components/layout/Footer";
 import HomePage from "./pages/Home";
 import AboutPage from "./pages/About";
 import ServicesPage from "./pages/Services";
+import GalleryPage from "./pages/Gallery";
 import FAQPage from "./pages/FAQ";
 import RegisterPage from "./pages/Register";
 import LoginPage from "./pages/Login";
@@ -32,7 +33,7 @@ function AppContent() {
     location.pathname.startsWith("/dashboard") ||
     location.pathname.startsWith("/admin") ||
     location.pathname === "/404" ||
-    !["/" , "/about", "/services", "/faq", "/register", "/login", "/verify-email"].some(path => 
+    !["/", "/about", "/services", "/gallery", "/faq", "/register", "/login", "/verify-email"].some(path =>
       location.pathname === path || location.pathname.startsWith(path)
     );
 
@@ -45,11 +46,12 @@ function AppContent() {
           <Route path="/" element={<HomePage />} />
           <Route path="/about" element={<AboutPage />} />
           <Route path="/services" element={<ServicesPage />} />
+          <Route path="/gallery" element={<GalleryPage />} />
           <Route path="/faq" element={<FAQPage />} />
           <Route path="/register" element={<RegisterPage />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/verify-email" element={<VerifyEmail />} />
-          
+
           <Route
             path="/dashboard/*"
             element={
@@ -84,7 +86,7 @@ function AppContent() {
           />
           <Route path="/admin/login" element={<AdminLogin />} />
           <Route path="/admin/dashboard" element={<AdminDashboard />} />
-          
+
           {/* 404 Route - Must be last */}
           <Route path="*" element={<NotFoundPage />} />
         </Routes>

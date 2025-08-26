@@ -31,6 +31,7 @@ const Header = () => {
     { name: 'Home', path: '/' },
     { name: 'About', path: '/about' },
     { name: 'Services', path: '/services' },
+    { name: 'Gallery', path: '/gallery' },
     { name: 'FAQ', path: '/faq' },
   ];
 
@@ -48,11 +49,10 @@ const Header = () => {
 
       {/* Navigation */}
       <nav
-        className={`${
-          scrolled
+        className={`${scrolled
             ? "bg-dark-darker shadow-lg backdrop-blur-lg bg-opacity-90"
             : "bg-transparent"
-        } fixed w-full z-50 transition-all duration-300`}
+          } fixed w-full z-50 transition-all duration-300`}
       >
         <div className="container-custom py-4">
           <div className="flex items-center justify-between">
@@ -68,9 +68,8 @@ const Header = () => {
                 <Link
                   key={link.path}
                   to={link.path}
-                  className={`font-medium hover:text-gold transition-colors ${
-                    pathname === link.path ? "text-gold" : "text-gray-400"
-                  }`}
+                  className={`font-medium hover:text-gold transition-colors ${pathname === link.path ? "text-gold" : "text-gray-400"
+                    }`}
                 >
                   {link.name}
                 </Link>
@@ -114,9 +113,8 @@ const Header = () => {
                   <Link
                     key={link.path}
                     to={link.path}
-                    className={`block py-2 font-medium transition-colors ${
-                      pathname === link.path ? "text-gold" : "text-gray-400"
-                    }`}
+                    className={`block py-2 font-medium transition-colors ${pathname === link.path ? "text-gold" : "text-gray-400"
+                      }`}
                   >
                     {link.name}
                   </Link>
