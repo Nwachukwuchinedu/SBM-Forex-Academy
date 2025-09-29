@@ -36,6 +36,14 @@ const userSchema = new mongoose.Schema(
     emailVerificationExpires: {
       type: Date,
     },
+    paymentStatus: {
+      type: Boolean,
+      default: false,
+    },
+    telegramId: {
+      type: String,
+      default: null,
+    },
   },
   {
     timestamps: true,

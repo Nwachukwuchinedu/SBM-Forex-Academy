@@ -1,7 +1,7 @@
 import { useEffect, useState, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { toast } from "react-hot-toast";
-import { DollarSign, User, Settings, LogOut } from "lucide-react";
+import { DollarSign, User, Settings, LogOut, Send } from "lucide-react";
 
 const AccountSettingPage = () => {
   const [user, setUser] = useState<{
@@ -15,6 +15,10 @@ const AccountSettingPage = () => {
     newPassword: "",
     confirmPassword: "",
   });
+  // Add state for token generation
+  const [token, setToken] = useState("");
+  const [tokenLoading, setTokenLoading] = useState(false);
+  const [tokenExpiry, setTokenExpiry] = useState<number | null>(null);
   const [loading, setLoading] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const avatarRef = useRef<HTMLDivElement>(null);
@@ -148,6 +152,41 @@ const AccountSettingPage = () => {
     setLoading(false);
   };
 
+  // Function to generate connection token
+  const generateConnectionToken = async () => {
+    setTokenLoading(true);
+    try {
+      const token = localStorage.getItem("accessToken");
+      const res = await fetch(
+        `${import.meta.env.VITE_API_BASE_URL}/api/telegram/generate-token`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      const data = await res.json();
+      if (!res.ok) {
+        toast.error(data.message || "Failed to generate token");
+      } else {
+        setToken(data.data.connectionToken);
+        setTokenExpiry(data.data.expiresAt);
+        toast.success("Connection token generated successfully");
+      }
+    } catch {
+      toast.error("Something went wrong");
+    }
+    setTokenLoading(false);
+  };
+
+  // Function to copy token to clipboard
+  const copyTokenToClipboard = () => {
+    navigator.clipboard.writeText(token);
+    toast.success("Token copied to clipboard");
+  };
+
   // Logout handler
   const handleLogout = async () => {
     const refreshToken = localStorage.getItem("refreshToken");
@@ -200,6 +239,14 @@ const AccountSettingPage = () => {
           >
             <Settings className="h-5 w-5" /> Account Setting
           </Link>
+          <a
+            href={`https://t.me/${import.meta.env.VITE_TELEGRAM_BOT_USERNAME}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-3 text-gray-400 hover:text-gold transition"
+          >
+            <Send className="h-5 w-5" /> Telegram Bot
+          </a>
         </nav>
       </aside>
 
@@ -232,6 +279,18 @@ const AccountSettingPage = () => {
                 >
                   <Settings className="h-4 w-4" /> Account Setting
                 </Link>
+                <a
+                  href={`https://t.me/${import.meta.env.VITE_TELEGRAM_BOT_USERNAME}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-2 px-4 py-2 text-gray-900 hover:bg-gold/10 transition"
+                  onMouseDown={(e) => {
+                    e.stopPropagation();
+                    setMenuOpen(false);
+                  }}
+                >
+                  <Send className="h-4 w-4" /> Telegram Bot
+                </a>
                 <button
                   className="flex items-center gap-2 px-4 py-2 w-full text-left text-red-600 hover:bg-gold/10 transition"
                   onMouseDown={(e) => {
@@ -265,6 +324,15 @@ const AccountSettingPage = () => {
                 >
                   <Settings className="h-4 w-4" /> Account Setting
                 </Link>
+                <a
+                  href={`https://t.me/${import.meta.env.VITE_TELEGRAM_BOT_USERNAME}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-2 px-4 py-2 text-gray-900 hover:bg-gold/10 transition"
+                  onClick={() => setMenuOpen(false)}
+                >
+                  <Send className="h-4 w-4" /> Telegram Bot
+                </a>
                 <button
                   className="flex items-center gap-2 px-4 py-2 w-full text-left text-red-600 hover:bg-gold/10 transition"
                   onClick={handleLogout}
@@ -389,6 +457,69 @@ const AccountSettingPage = () => {
                 {loading ? "Updating..." : "Update Password"}
               </button>
             </form>
+
+            <hr className="my-6 border-gray-700" />
+
+            {/* Telegram Connection Section */}
+            <div className="space-y-4">
+              <h2 className="text-lg font-semibold text-gold mb-2">
+                Telegram Connection
+              </h2>
+              <p className="text-gray-400 text-sm mb-4">
+                Connect your account to our Telegram bot to receive educational content and updates.
+              </p>
+              
+              {token ? (
+                <div className="bg-dark-lighter border border-gray-700 rounded-md p-4">
+                  <div className="flex justify-between items-start mb-2">
+                    <label className="block text-gray-400 mb-1">
+                      Connection Token
+                    </label>
+                    <button
+                      onClick={copyTokenToClipboard}
+                      className="text-xs bg-gold text-dark px-2 py-1 rounded hover:bg-amber-500 transition"
+                    >
+                      Copy
+                    </button>
+                  </div>
+                  <div className="font-mono text-sm bg-gray-800 p-3 rounded break-all">
+                    {token}
+                  </div>
+                  {tokenExpiry && (
+                    <p className="text-gray-500 text-xs mt-2">
+                      Expires at: {new Date(tokenExpiry).toLocaleString()}
+                    </p>
+                  )}
+                  <p className="text-yellow-500 text-xs mt-2">
+                    This token can only be used once and will expire in 10 minutes.
+                  </p>
+                </div>
+              ) : (
+                <button
+                  onClick={generateConnectionToken}
+                  disabled={tokenLoading}
+                  className="btn btn-primary w-full flex items-center justify-center"
+                >
+                  {tokenLoading ? (
+                    <>
+                      <span className="animate-spin mr-2">⏳</span>
+                      Generating...
+                    </>
+                  ) : (
+                    "Generate Connection Token"
+                  )}
+                </button>
+              )}
+              
+              <div className="mt-4 text-gray-500 text-sm">
+                <p className="mb-2">To connect with Telegram:</p>
+                <ol className="list-decimal list-inside space-y-1">
+                  <li>Click "Generate Connection Token"</li>
+                  <li>Open Telegram and search for our bot</li>
+                  <li>Send the command: <span className="font-mono bg-gray-800 px-1 rounded">/token YOUR_GENERATED_TOKEN</span></li>
+                </ol>
+              </div>
+            </div>
           </div>
         </main>
 

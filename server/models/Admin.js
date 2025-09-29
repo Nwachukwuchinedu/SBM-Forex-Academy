@@ -21,6 +21,10 @@ const adminSchema = new mongoose.Schema({
     type: String,
     default: "admin",
   },
+  telegramId: {
+    type: String,
+    default: null,
+  },
 });
 
 export default mongoose.model("Admin", adminSchema);

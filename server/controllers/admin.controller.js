@@ -18,12 +18,10 @@ export const registerAdmin = async (req, res) => {
       password: hashedPassword,
     });
 
-    res
-      .status(201)
-      .json({
-        message: "Admin registered",
-        admin: { id: admin._id, username, email },
-      });
+    res.status(201).json({
+      message: "Admin registered",
+      admin: { id: admin._id, username, email },
+    });
   } catch (err) {
     res.status(500).json({ message: `Server error: ${err.message}` });
   }
@@ -81,7 +79,6 @@ export const getAllUsers = async (req, res) => {
   }
 };
 
-
 // Update Admin Password
 export const updateAdminPassword = async (req, res) => {
   const { currentPassword, newPassword } = req.body;
@@ -104,6 +101,25 @@ export const updateAdminPassword = async (req, res) => {
     await admin.save();
 
     res.json({ message: "Password updated successfully" });
+  } catch (err) {
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+// Update Admin Telegram ID
+export const updateAdminTelegramId = async (req, res) => {
+  const { telegramId } = req.body;
+
+  try {
+    // Find admin by ID from decoded token (set in middleware)
+    const admin = await Admin.findById(req.user.id);
+    if (!admin) return res.status(404).json({ message: "Admin not found" });
+
+    // Update Telegram ID
+    admin.telegramId = telegramId;
+    await admin.save();
+
+    res.json({ message: "Telegram ID updated successfully", telegramId });
   } catch (err) {
     res.status(500).json({ message: "Server error" });
   }
