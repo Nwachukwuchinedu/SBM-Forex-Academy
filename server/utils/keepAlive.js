@@ -3,8 +3,8 @@ import axios from 'axios';
 
 const RENDER_URL = process.env.RENDER_EXTERNAL_URL;
 
-// Ping every 10 minutes
-cron.schedule('*/10 * * * *', async () => {
+// Ping every 5 minutes
+cron.schedule('*/5 * * * *', async () => {
   try {
     await axios.get(`${RENDER_URL}/api/health`);
     console.log('Keep-alive ping sent successfully');

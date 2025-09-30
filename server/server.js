@@ -1,5 +1,6 @@
 import app from "./app.js";
 import dotenv from "dotenv";
+import "./utils/keepAlive.js";
 import {
   startTelegramBot,
   stopTelegramBot,
