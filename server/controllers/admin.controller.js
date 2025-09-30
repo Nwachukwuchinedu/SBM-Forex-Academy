@@ -124,3 +124,38 @@ export const updateAdminTelegramId = async (req, res) => {
     res.status(500).json({ message: "Server error" });
   }
 };
+
+// Update Admin Telegram Group Invite Link
+export const updateAdminTelegramGroupInviteLink = async (req, res) => {
+  const { telegramGroupInviteLink } = req.body;
+
+  try {
+    // Find admin by ID from decoded token (set in middleware)
+    const admin = await Admin.findById(req.user.id);
+    if (!admin) return res.status(404).json({ message: "Admin not found" });
+
+    // Update Telegram Group Invite Link
+    admin.telegramGroupInviteLink = telegramGroupInviteLink;
+    await admin.save();
+
+    res.json({
+      message: "Telegram Group Invite Link updated successfully",
+      telegramGroupInviteLink,
+    });
+  } catch (err) {
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+// Get Admin Telegram Group Invite Link
+export const getAdminTelegramGroupInviteLink = async (req, res) => {
+  try {
+    // Find admin by ID from decoded token (set in middleware)
+    const admin = await Admin.findById(req.user.id);
+    if (!admin) return res.status(404).json({ message: "Admin not found" });
+
+    res.json({ telegramGroupInviteLink: admin.telegramGroupInviteLink });
+  } catch (err) {
+    res.status(500).json({ message: "Server error" });
+  }
+};

@@ -25,6 +25,10 @@ const adminSchema = new mongoose.Schema({
     type: String,
     default: null,
   },
+  telegramGroupInviteLink: {
+    type: String,
+    default: null,
+  },
 });
 
 export default mongoose.model("Admin", adminSchema);

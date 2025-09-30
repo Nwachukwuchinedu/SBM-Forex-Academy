@@ -113,6 +113,76 @@ const AdminDashboard = () => {
     }
   };
 
+  // State for Telegram group invite link
+  const [telegramGroupInviteLink, setTelegramGroupInviteLink] = useState("");
+  const [telegramGroupMessage, setTelegramGroupMessage] = useState("");
+  const [telegramGroupLoading, setTelegramGroupLoading] = useState(false);
+
+  // Function to update Telegram group invite link
+  const handleUpdateTelegramGroupInviteLink = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setTelegramGroupLoading(true);
+    setTelegramGroupMessage("");
+    
+    try {
+      const token = localStorage.getItem("adminToken");
+      const res = await fetch(
+        `${import.meta.env.VITE_API_BASE_URL}/api/admin/telegram-group-invite-link`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ telegramGroupInviteLink }),
+        }
+      );
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        setTelegramGroupMessage(data.message || "Failed to update Telegram group invite link.");
+      } else {
+        setTelegramGroupMessage("✅ Telegram group invite link updated successfully!");
+      }
+    } catch (err) {
+      setTelegramGroupMessage("⚠️ Something went wrong. Please try again.");
+    } finally {
+      setTelegramGroupLoading(false);
+      setTimeout(() => setTelegramGroupMessage(""), 5000);
+    }
+  };
+
+  // Function to fetch current Telegram group invite link
+  const fetchTelegramGroupInviteLink = async () => {
+    try {
+      const token = localStorage.getItem("adminToken");
+      const res = await fetch(
+        `${import.meta.env.VITE_API_BASE_URL}/api/admin/telegram-group-invite-link`,
+        {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      const data = await res.json();
+
+      if (res.ok && data.telegramGroupInviteLink) {
+        setTelegramGroupInviteLink(data.telegramGroupInviteLink);
+      }
+    } catch (err) {
+      console.error("Failed to fetch Telegram group invite link:", err);
+    }
+  };
+
+  // Fetch Telegram group invite link when component mounts
+  useEffect(() => {
+    fetchTelegramGroupInviteLink();
+  }, []);
+
   // Function to generate connection token
   const generateConnectionToken = async () => {
     setTokenLoading(true);
@@ -377,6 +447,80 @@ const AdminDashboard = () => {
               </div>
             )}
           </div>
+        </div>
+      </div>
+
+      {/* Telegram Group Invite Link Form */}
+      <div className="lg:col-span-1 bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden">
+        <div className="p-6 border-b border-gray-200">
+          <h2 className="text-xl font-semibold text-gold flex items-center">
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
+            </svg>
+            Telegram Group Settings
+          </h2>
+          <p className="text-gray-400 mt-1 text-sm">Set your Telegram group invite link</p>
+        </div>
+        <div className="p-6 bg-gray-50">
+          {telegramGroupMessage && (
+            <div className={`mb-4 p-3 rounded-md text-sm ${telegramGroupMessage.includes('successfully') ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}`}>
+              {telegramGroupMessage}
+            </div>
+          )}
+          <form onSubmit={handleUpdateTelegramGroupInviteLink} className="space-y-4">
+            <div>
+              <label
+                className="block text-gray-400 text-sm font-medium mb-2"
+                htmlFor="telegramGroupInviteLink"
+              >
+                Telegram Group Invite Link
+              </label>
+              <div className="relative">
+                <input
+                  type="text"
+                  id="telegramGroupInviteLink"
+                  value={telegramGroupInviteLink}
+                  onChange={(e) => setTelegramGroupInviteLink(e.target.value)}
+                  className="w-full p-3 bg-white border border-gray-300 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-gold focus:border-transparent focus:ring-offset-2 transition-all duration-200"
+                  placeholder="https://t.me/+your_group_invite_link"
+                />
+                <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none opacity-70">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
+                  </svg>
+                </div>
+              </div>
+              <p className="mt-2 text-xs text-gray-500">
+                Enter the invite link for your Telegram group (private or public)
+              </p>
+            </div>
+            <button
+              type="submit"
+              disabled={telegramGroupLoading}
+              className={`w-full ${
+                telegramGroupLoading 
+                  ? "bg-gray-400 cursor-not-allowed" 
+                  : "bg-gradient-to-r from-gold to-amber-500 hover:from-amber-500 hover:to-gold"
+              } text-gray-900 font-semibold py-3 px-4 rounded-lg transition-all duration-300 ease-in-out transform hover:scale-[1.02] focus:outline-none focus:ring-2 focus:ring-gold focus:ring-opacity-50 shadow-md hover:shadow-lg flex items-center justify-center`}
+            >
+              {telegramGroupLoading ? (
+                <>
+                  <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  Updating...
+                </>
+              ) : (
+                <>
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 inline-block mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4" />
+                  </svg>
+                  Update Group Link
+                </>
+              )}
+            </button>
+          </form>
         </div>
       </div>
 

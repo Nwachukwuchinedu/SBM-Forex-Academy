@@ -21,19 +21,28 @@ bot.telegram.setMyCommands([
   { command: "start", description: "Start the bot" },
   { command: "connect", description: "Connect your account" },
   { command: "token", description: "Connect using a token" },
-  { command: "howtojoin", description: "Get instructions on how to join the group" },
+  {
+    command: "howtojoin",
+    description: "Get instructions on how to join the group",
+  },
   { command: "help", description: "Show help message" },
-  { command: "logout", description: "Logout from your account" }
+  { command: "logout", description: "Logout from your account" },
 ]);
 
-// Get admin ID from database
-const getAdminId = async () => {
+// Get admin ID and group invite link from database
+const getAdminInfo = async () => {
   try {
     const admin = await Admin.findOne({ role: "admin" });
-    return admin && admin.telegramId ? admin.telegramId : null;
+    return {
+      adminId: admin && admin.telegramId ? admin.telegramId : null,
+      groupInviteLink:
+        admin && admin.telegramGroupInviteLink
+          ? admin.telegramGroupInviteLink
+          : null,
+    };
   } catch (error) {
-    console.error("Error fetching admin ID:", error);
-    return null;
+    console.error("Error fetching admin info:", error);
+    return { adminId: null, groupInviteLink: null };
   }
 };
 
@@ -41,8 +50,8 @@ const getAdminId = async () => {
 const checkAdmin = async (ctx) => {
   try {
     const userId = ctx.from.id;
-    const adminId = await getAdminId();
-    return adminId && userId.toString() === adminId.toString();
+    const adminInfo = await getAdminInfo();
+    return adminInfo.adminId && userId.toString() === adminInfo.adminId.toString();
   } catch (error) {
     console.error("Error in admin check:", error);
     return false;
@@ -57,29 +66,33 @@ const isUserInGroup = async (userId) => {
       console.log("TELEGRAM_GROUP_ID not set, skipping group membership check");
       return true; // If not set, assume they're in the group
     }
-    
+
     // Validate that TELEGRAM_GROUP_ID is a valid number
     if (!/^-?\d+$/.test(process.env.TELEGRAM_GROUP_ID)) {
-      console.log("Invalid TELEGRAM_GROUP_ID format, skipping group membership check");
+      console.log(
+        "Invalid TELEGRAM_GROUP_ID format, skipping group membership check"
+      );
       return true;
     }
-    
+
     // Get chat member status
     const chatMember = await bot.telegram.getChatMember(
       process.env.TELEGRAM_GROUP_ID,
       userId
     );
-    
+
     // Check if user is in the group
     // Status can be: 'creator', 'administrator', 'member', 'restricted', 'left', 'kicked'
-    const validStatuses = ['creator', 'administrator', 'member', 'restricted'];
+    const validStatuses = ["creator", "administrator", "member", "restricted"];
     return validStatuses.includes(chatMember.status);
   } catch (error) {
     console.error(`Error checking group membership for user ${userId}:`, error);
     // If there's an error (e.g., user never joined), return false
     // But also handle specific cases like chat not found
     if (error.response && error.response.error_code === 400) {
-      console.log("Chat not found or invalid group ID, skipping group membership check");
+      console.log(
+        "Chat not found or invalid group ID, skipping group membership check"
+      );
       return true; // Assume they're in the group if we can't verify
     }
     return false;
@@ -92,38 +105,48 @@ const verifyAdminConnection = async (userId, connectionToken) => {
     // First, we need to find the user associated with this token
     // We'll need to access the connectionTokens map from the telegram controller
     // For now, let's implement a simplified version by checking the database
-    
+
     // Find the admin user
     const admin = await Admin.findOne({ role: "admin" });
-    
+
     if (!admin) {
       return { isValid: false, message: "No admin user found in the system." };
     }
-    
+
     // Check if the admin has set their Telegram ID
     if (!admin.telegramId) {
-      return { isValid: false, message: "Admin has not set their Telegram ID in the dashboard." };
+      return {
+        isValid: false,
+        message: "Admin has not set their Telegram ID in the dashboard.",
+      };
     }
-    
+
     // Check if the Telegram ID matches
     if (admin.telegramId.toString() !== userId.toString()) {
-      return { isValid: false, message: "The Telegram ID does not match the one set in the admin dashboard." };
+      return {
+        isValid: false,
+        message:
+          "The Telegram ID does not match the one set in the admin dashboard.",
+      };
     }
-    
+
     // If we get here, the user is verified as admin
     return { isValid: true, admin };
   } catch (error) {
     console.error("Error verifying admin connection:", error);
-    return { isValid: false, message: "An error occurred while verifying admin credentials." };
+    return {
+      isValid: false,
+      message: "An error occurred while verifying admin credentials.",
+    };
   }
 };
 
 // Show main menu based on user role
 const showMainMenu = async (ctx, user) => {
   // Check if this is an admin user
-  const adminId = await getAdminId();
-  const isAdminUser = adminId && ctx.from.id.toString() === adminId.toString();
-  
+  const adminInfo = await getAdminInfo();
+  const isAdminUser = adminInfo.adminId && ctx.from.id.toString() === adminInfo.adminId.toString();
+
   if (isAdminUser) {
     // Admin menu
     await ctx.reply(
@@ -134,7 +157,7 @@ const showMainMenu = async (ctx, user) => {
         [Markup.button.callback("📢 Broadcast Message", "broadcast")],
         [Markup.button.callback("🔄 Toggle Payment", "toggle_payment")],
         [Markup.button.callback("❓ Help", "help")],
-        [Markup.button.callback("🚪 Logout", "logout")]
+        [Markup.button.callback("🚪 Logout", "logout")],
       ]).oneTime()
     );
   } else {
@@ -144,21 +167,95 @@ const showMainMenu = async (ctx, user) => {
       Markup.inlineKeyboard([
         [Markup.button.callback("📊 Check Status", "check_status")],
         [Markup.button.callback("❓ Help", "help")],
-        [Markup.button.callback("🚪 Logout", "logout")]
+        [Markup.button.callback("🚪 Logout", "logout")],
       ]).oneTime()
     );
   }
 };
 
+// Command to provide instructions on how to join the group
+bot.command("howtojoin", async (ctx) => {
+  try {
+    const userId = ctx.from.id;
+
+    // Check if this is an admin
+    const adminInfo = await getAdminInfo();
+    const isAdminUser =
+      adminInfo.adminId && userId.toString() === adminInfo.adminId.toString();
+
+    // Check if user is connected
+    let user = null;
+    if (!isAdminUser) {
+      user = await User.findOne({ telegramId: userId });
+    } else {
+      user = await Admin.findOne({ telegramId: userId });
+    }
+
+    if (!user && !isAdminUser) {
+      await ctx.reply(
+        "ℹ️ You are not yet connected to your SBM Forex Academy account.\n" +
+          "Please connect your account first using the /connect command."
+      );
+      return;
+    }
+
+    // Provide group joining instructions
+    if (adminInfo.groupInviteLink) {
+      // Use HTML formatting instead of Markdown to avoid parsing issues
+      await ctx.reply(
+        `<b>📢 How to Join Our Telegram Group</b>\n\n` +
+          `To receive educational content and broadcasts, please follow these steps:\n\n` +
+          `1. Click on this link to join our group: ${adminInfo.groupInviteLink}\n` +
+          `2. After joining, you'll automatically start receiving educational content\n` +
+          `3. If you've already joined but still see membership issues, try leaving and rejoining the group\n\n` +
+          `Once you've joined the group, you'll be able to receive all broadcast messages and educational content.\n\n` +
+          `If you continue to experience issues, please contact our support team.`,
+        { parse_mode: "HTML" }
+      );
+    } else {
+      await ctx.reply(
+        "<b>📢 Group Information</b>\n\n" +
+          "Our Telegram group information is not available yet. Please contact support for more details.",
+        { parse_mode: "HTML" }
+      );
+    }
+
+    // Show menu again
+    if (user) {
+      await showMainMenu(ctx, user);
+    }
+  } catch (error) {
+    console.error("Error in howtojoin command:", error);
+    // Send a plain text message as a fallback
+    try {
+      await ctx.reply(
+        "📢 How to Join Our Telegram Group\n\n" +
+          "To receive educational content and broadcasts, please follow these steps:\n\n" +
+          "1. Click on this link to join our group: Contact admin for the group link\n" +
+          "2. After joining, you'll automatically start receiving educational content\n" +
+          "3. If you've already joined but still see membership issues, try leaving and rejoining the group\n\n" +
+          "Once you've joined the group, you'll be able to receive all broadcast messages and educational content.\n\n" +
+          "If you continue to experience issues, please contact our support team."
+      );
+    } catch (fallbackError) {
+      console.error("Fallback error in howtojoin command:", fallbackError);
+      await ctx.reply(
+        "An error occurred while providing group joining instructions. Please try again later."
+      );
+    }
+  }
+});
+
 // Start command - Welcome message with role-based keyboard
 bot.start(async (ctx) => {
   try {
     const userId = ctx.from.id;
-    
+
     // Check if this is an admin
-    const adminId = await getAdminId();
-    const isAdminUser = adminId && userId.toString() === adminId.toString();
-    
+    const adminInfo = await getAdminInfo();
+    const isAdminUser =
+      adminInfo.adminId && userId.toString() === adminInfo.adminId.toString();
+
     if (isAdminUser) {
       const admin = await Admin.findOne({ role: "admin", telegramId: userId });
       if (admin) {
@@ -167,7 +264,7 @@ bot.start(async (ctx) => {
         return;
       }
     }
-    
+
     // Check if this is a regular user
     const user = await User.findOne({ telegramId: userId });
     if (user) {
@@ -175,20 +272,22 @@ bot.start(async (ctx) => {
       await showMainMenu(ctx, user);
       return;
     }
-    
+
     // New user - provide instructions
-    let welcomeMessage = "Welcome! Please log in to your account to connect with the bot.";
-    
-    if (process.env.TELEGRAM_GROUP_ID) {
-      welcomeMessage += "\n\n📢 Important: To receive educational content and broadcasts, you must join our Telegram group. Please make sure you've joined the group before connecting your account.";
+    let welcomeMessage =
+      "Welcome! Please log in to your account to connect with the bot.";
+
+    if (adminInfo.groupInviteLink) {
+      welcomeMessage +=
+        "\n\n📢 Important: To receive educational content and broadcasts, you must join our Telegram group. Please make sure you've joined the group before connecting your account.";
     }
-    
+
     await ctx.reply(
       welcomeMessage,
       Markup.inlineKeyboard([
         Markup.button.callback("Connect Account", "connect_account"),
         Markup.button.callback("How to Join Group", "how_to_join"),
-        Markup.button.callback("Help", "help")
+        Markup.button.callback("Help", "help"),
       ])
     );
   } catch (error) {
@@ -201,13 +300,13 @@ bot.start(async (ctx) => {
 bot.action("connect_account", async (ctx) => {
   await ctx.reply(
     `<b>🔗 Account Connection</b>\n\n` +
-    `To connect your SBM Forex Academy account with this Telegram bot:\n\n` +
-    `1. Log in to your SBM Forex Academy account on the website\n` +
-    `2. Go to Account Settings\n` +
-    `3. Click "Generate Connection Token"\n` +
-    `4. Copy the generated token\n` +
-    `5. Send the token to this bot using the command: /token YOUR_TOKEN_HERE\n\n` +
-    `Once connected, you'll receive educational content from the group.`,
+      `To connect your SBM Forex Academy account with this Telegram bot:\n\n` +
+      `1. Log in to your SBM Forex Academy account on the website\n` +
+      `2. Go to Account Settings\n` +
+      `3. Click "Generate Connection Token"\n` +
+      `4. Copy the generated token\n` +
+      `5. Send the token to this bot using the command: /token YOUR_TOKEN_HERE\n\n` +
+      `Once connected, you'll receive educational content from the group.`,
     { parse_mode: "HTML" }
   );
 });
@@ -219,10 +318,10 @@ bot.action("how_to_join", async (ctx) => {
     message: {
       text: "/howtojoin",
       from: ctx.from,
-      chat: ctx.chat
-    }
+      chat: ctx.chat,
+    },
   };
-  
+
   // Call the howtojoin command handler directly
   await bot.command("howtojoin")(mockCtx);
 });
@@ -230,65 +329,68 @@ bot.action("how_to_join", async (ctx) => {
 bot.action("check_status", async (ctx) => {
   try {
     const userId = ctx.from.id;
-    
+
     // Check if this is an admin
-    const adminId = await getAdminId();
-    const isAdminUser = adminId && userId.toString() === adminId.toString();
-    
+    const adminInfo = await getAdminInfo();
+    const isAdminUser =
+      adminInfo.adminId && userId.toString() === adminInfo.adminId.toString();
+
     if (isAdminUser) {
       const admin = await Admin.findOne({ role: "admin", telegramId: userId });
       if (admin) {
         await ctx.reply(
           `<b>🛡️ Admin Status</b>\n\n` +
-          `Username: ${admin.username}\n` +
-          `Email: ${admin.email}\n` +
-          `<b>Role: ADMIN</b>\n\n` +
-          `You have full administrative privileges.`,
+            `Username: ${admin.username}\n` +
+            `Email: ${admin.email}\n` +
+            `<b>Role: ADMIN</b>\n\n` +
+            `You have full administrative privileges.`,
           { parse_mode: "HTML" }
         );
         await showMainMenu(ctx, admin);
         return;
       }
     }
-    
+
     // Check regular user
     const user = await User.findOne({ telegramId: userId });
     if (!user) {
       await ctx.reply(
         "ℹ️ You are not yet connected to your SBM Forex Academy account.\n" +
-        "Use /connect to link your account and receive educational content."
+          "Use /connect to link your account and receive educational content."
       );
       return;
     }
 
     // Check if user is in the group
     let groupStatus = "";
-    if (process.env.TELEGRAM_GROUP_ID) {
+    if (adminInfo.groupInviteLink) {
       const isInGroup = await isUserInGroup(userId);
       groupStatus = `\nGroup Membership: ${isInGroup ? "ACTIVE" : "INACTIVE"}`;
-      
+
       if (!isInGroup) {
-        groupStatus += "\n\n📢 Important: You must join our Telegram group to receive educational content and broadcasts. Please join the group to get full access.";
+        groupStatus +=
+          "\n\n📢 Important: You must join our Telegram group to receive educational content and broadcasts. Please join the group to get full access.";
       }
     }
 
     await ctx.reply(
       `<b>📊 Payment Status</b>\n\n` +
-      `Name: ${user.firstName} ${user.lastName}\n` +
-      `Email: ${user.email}\n` +
-      `<b>Status: ${user.paymentStatus ? "ACTIVE" : "INACTIVE"}</b>` +
-      groupStatus +
-      "\n\n" +
-      (user.paymentStatus && (groupStatus.includes("ACTIVE") || !process.env.TELEGRAM_GROUP_ID)
-        ? "✅ You have full access to educational content from the group."
-        : "❌ You currently don't have access to educational content. " +
-          (user.paymentStatus 
-            ? "Please join our Telegram group to get access." 
-            : "Contact admin for assistance.")) +
-      "\n",
+        `Name: ${user.firstName} ${user.lastName}\n` +
+        `Email: ${user.email}\n` +
+        `<b>Status: ${user.paymentStatus ? "ACTIVE" : "INACTIVE"}</b>` +
+        groupStatus +
+        "\n\n" +
+        (user.paymentStatus &&
+        (groupStatus.includes("ACTIVE") || !adminInfo.groupInviteLink)
+          ? "✅ You have full access to educational content from the group."
+          : "❌ You currently don't have access to educational content. " +
+            (user.paymentStatus
+              ? "Please join our Telegram group to get access."
+              : "Contact admin for assistance.")) +
+        "\n",
       { parse_mode: "HTML" }
     );
-    
+
     // Show menu again
     await showMainMenu(ctx, user);
   } catch (error) {
@@ -303,8 +405,8 @@ bot.action("help", async (ctx) => {
   const userId = ctx.from.id;
 
   // Check if this is an admin
-  const adminId = await getAdminId();
-  const isAdminUser = adminId && userId.toString() === adminId.toString();
+  const adminInfo = await getAdminInfo();
+  const isAdminUser = adminInfo.adminId && userId.toString() === adminInfo.adminId.toString();
 
   let message = "<b>🚀 SBM Forex Academy Bot</b>\n\n";
 
@@ -466,8 +568,8 @@ bot.action("broadcast", async (ctx) => {
 
   await ctx.reply(
     "<b>📢 Broadcast Message</b>\n\n" +
-    "To broadcast a message to all paying users, use the command:\n" +
-    "/broadcast Your message here"
+      "To broadcast a message to all paying users, use the command:\n" +
+      "/broadcast Your message here"
   );
 });
 
@@ -488,8 +590,8 @@ bot.action("toggle_payment", async (ctx) => {
 
   await ctx.reply(
     "<b>🔄 Toggle Payment Status</b>\n\n" +
-    "To toggle a user's payment status, use the command:\n" +
-    "/togglepayment [user_email]"
+      "To toggle a user's payment status, use the command:\n" +
+      "/togglepayment [user_email]"
   );
 });
 
@@ -500,13 +602,13 @@ bot.command("connect", async (ctx) => {
 
     await ctx.reply(
       `<b>🔗 Account Connection</b>\n\n` +
-      `To connect your SBM Forex Academy account with this Telegram bot:\n\n` +
-      `1. Log in to your SBM Forex Academy account on the website\n` +
-      `2. Go to Account Settings\n` +
-      `3. Click "Generate Connection Token"\n` +
-      `4. Copy the generated token\n` +
-      `5. Send the token to this bot using the command: /token YOUR_TOKEN_HERE\n\n` +
-      `Once connected, you'll receive educational content from the group.`
+        `To connect your SBM Forex Academy account with this Telegram bot:\n\n` +
+        `1. Log in to your SBM Forex Academy account on the website\n` +
+        `2. Go to Account Settings\n` +
+        `3. Click "Generate Connection Token"\n` +
+        `4. Copy the generated token\n` +
+        `5. Send the token to this bot using the command: /token YOUR_TOKEN_HERE\n\n` +
+        `Once connected, you'll receive educational content from the group.`
     );
   } catch (error) {
     console.error("Error in connect command:", error);
@@ -525,8 +627,8 @@ bot.command("token", async (ctx) => {
     if (args.length < 2) {
       await ctx.reply(
         "❌ Please provide a connection token.\n\n" +
-        "Usage: /token YOUR_TOKEN_HERE\n\n" +
-        "Generate a token from your account settings on the website."
+          "Usage: /token YOUR_TOKEN_HERE\n\n" +
+          "Generate a token from your account settings on the website."
       );
       return;
     }
@@ -536,11 +638,11 @@ bot.command("token", async (ctx) => {
     // Check if this Telegram account is already connected to another user
     const existingUser = await User.findOne({ telegramId: userId });
     const existingAdmin = await Admin.findOne({ telegramId: userId });
-    
+
     if (existingUser || existingAdmin) {
       await ctx.reply(
         "❌ This Telegram account is already connected to an account.\n\n" +
-        "Please logout first using the /logout command before connecting a new account."
+          "Please logout first using the /logout command before connecting a new account."
       );
       return;
     }
@@ -548,7 +650,9 @@ bot.command("token", async (ctx) => {
     // Make API call to validate the token and connect the account
     try {
       const response = await axios.post(
-        `${process.env.API_BASE_URL || "http://localhost:5000"}/api/telegram-validation/validate-token`,
+        `${
+          process.env.API_BASE_URL || "http://localhost:5000"
+        }/api/telegram-validation/validate-token`,
         {
           telegramId: userId.toString(),
           connectionToken: token,
@@ -559,55 +663,63 @@ bot.command("token", async (ctx) => {
 
       if (result.success) {
         // Check if this is an admin user
-        const adminId = await getAdminId();
-        const isAdminUser = adminId && userId.toString() === adminId.toString();
-        
+        const adminInfo = await getAdminInfo();
+        const isAdminUser =
+          adminInfo.adminId &&
+          userId.toString() === adminInfo.adminId.toString();
+
         if (isAdminUser) {
           // Additional verification for admin users
           const adminVerification = await verifyAdminConnection(userId, token);
           if (!adminVerification.isValid) {
             await ctx.reply(
               `<b>❌ Admin Verification Failed</b>\n\n` +
-              `${adminVerification.message}\n\n` +
-              `Please ensure you've set your Telegram ID in the admin dashboard and try again.`
+                `${adminVerification.message}\n\n` +
+                `Please ensure you've set your Telegram ID in the admin dashboard and try again.`
             );
             return;
           }
-          
+
           await ctx.reply(
             "<b>✅ Admin Connection Successful</b>\n\n" +
-            "Welcome Admin! Your Telegram account is now connected.\n\n" +
-            "You have full administrative privileges."
+              "Welcome Admin! Your Telegram account is now connected.\n\n" +
+              "You have full administrative privileges."
           );
-          
+
           // Show admin menu
           await showMainMenu(ctx, adminVerification.admin);
         } else {
           // For regular users, check if they need to join the group
           let groupMessage = "";
-          if (process.env.TELEGRAM_GROUP_ID) {
+          if (adminInfo.groupInviteLink) {
             // Check if user is in the group
             const isInGroup = await isUserInGroup(userId);
-            
+
             if (!isInGroup) {
-              groupMessage = "\n\n📢 Important Notice: You must join our Telegram group to receive educational content and broadcasts. " +
+              groupMessage =
+                "\n\n📢 Important Notice: You must join our Telegram group to receive educational content and broadcasts. " +
                 "Please join the group now to get full access to our services.\n\n" +
                 "Use /howtojoin to get instructions on how to join our group.";
             } else {
-              groupMessage = "\n\n✅ You are already a member of our Telegram group. You will receive educational content and broadcasts.";
+              groupMessage =
+                "\n\n✅ You are already a member of our Telegram group. You will receive educational content and broadcasts.";
             }
           }
-          
+
           await ctx.reply(
             "<b>✅ Connection Successful</b>\n\n" +
-            "Welcome " + result.data.firstName + "! Your Telegram account is now connected.\n\n" +
-            "<b>Payment Status: " + (result.data.paymentStatus ? "ACTIVE" : "INACTIVE") + "</b>\n" +
-            (result.data.paymentStatus 
-              ? "You will now receive educational content from the group (if you're a group member)." 
-              : "You will not receive educational content until your payment status is active.") +
-            groupMessage
+              "Welcome " +
+              result.data.firstName +
+              "! Your Telegram account is now connected.\n\n" +
+              "<b>Payment Status: " +
+              (result.data.paymentStatus ? "ACTIVE" : "INACTIVE") +
+              "</b>\n" +
+              (result.data.paymentStatus
+                ? "You will now receive educational content from the group (if you're a group member)."
+                : "You will not receive educational content until your payment status is active.") +
+              groupMessage
           );
-          
+
           // Show the appropriate menu based on user role
           const user = await User.findOne({ telegramId: userId });
           if (user) {
@@ -617,15 +729,16 @@ bot.command("token", async (ctx) => {
       } else {
         await ctx.reply(
           "<b>❌ Connection Failed</b>\n\n" +
-          result.message + "\n\n" +
-          "Please generate a new token and try again."
+            result.message +
+            "\n\n" +
+            "Please generate a new token and try again."
         );
       }
     } catch (apiError) {
       console.error("Error calling validation API:", apiError);
       await ctx.reply(
         "<b>❌ Connection Failed</b>\n\n" +
-        "An error occurred while validating your token. Please try again later."
+          "An error occurred while validating your token. Please try again later."
       );
     }
   } catch (error) {
@@ -679,8 +792,8 @@ bot.help(async (ctx) => {
   const userId = ctx.from.id;
 
   // Check if this is an admin
-  const adminId = await getAdminId();
-  const isAdminUser = adminId && userId.toString() === adminId.toString();
+  const adminInfo = await getAdminInfo();
+  const isAdminUser = adminInfo.adminId && userId.toString() === adminInfo.adminId.toString();
 
   let message = "<b>🚀 SBM Forex Academy Bot</b>\n\n";
 
@@ -724,10 +837,10 @@ bot.help(async (ctx) => {
 const isAdminMiddleware = async (ctx, next) => {
   try {
     const userId = ctx.from.id;
-    const adminId = await getAdminId();
+    const adminInfo = await getAdminInfo();
 
     // Check if this user ID matches the admin ID in the database
-    if (adminId && userId.toString() === adminId.toString()) {
+    if (adminInfo.adminId && userId.toString() === adminInfo.adminId.toString()) {
       return next();
     }
 
@@ -771,8 +884,15 @@ bot.command("togglepayment", isAdminMiddleware, async (ctx) => {
 
     await ctx.reply(
       "<b>✅ Successfully updated payment status for " +
-      user.firstName + " " + user.lastName + " (" + user.email + ")</b>\n" +
-      "<b>New status: " + (user.paymentStatus ? "Paid" : "Not Paid") + "</b>"
+        user.firstName +
+        " " +
+        user.lastName +
+        " (" +
+        user.email +
+        ")</b>\n" +
+        "<b>New status: " +
+        (user.paymentStatus ? "Paid" : "Not Paid") +
+        "</b>"
     );
 
     // Send a notification to the user about their status change
@@ -781,10 +901,14 @@ bot.command("togglepayment", isAdminMiddleware, async (ctx) => {
         await bot.telegram.sendMessage(
           user.telegramId,
           `<b>🔔 Payment Status Update</b>\n\n` +
-          `Your access status has been changed to <b>${user.paymentStatus ? "ACTIVE" : "INACTIVE"}</b>\n` +
-          `You are now ${user.paymentStatus
-            ? "able to receive educational content"
-            : "no longer able to receive educational content"} from the group.`,
+            `Your access status has been changed to <b>${
+              user.paymentStatus ? "ACTIVE" : "INACTIVE"
+            }</b>\n` +
+            `You are now ${
+              user.paymentStatus
+                ? "able to receive educational content"
+                : "no longer able to receive educational content"
+            } from the group.`,
           { parse_mode: "HTML" }
         );
       } catch (error) {
@@ -806,18 +930,18 @@ bot.command("togglepayment", isAdminMiddleware, async (ctx) => {
 const canReceiveMessages = async (userId) => {
   try {
     const user = await User.findOne({ telegramId: userId });
-    
+
     // Check if user exists and has payment status
     if (!user || !user.paymentStatus) {
       return false;
     }
-    
+
     // If group ID is set, check if user is in the group
     if (process.env.TELEGRAM_GROUP_ID) {
       const isInGroup = await isUserInGroup(userId);
       return isInGroup;
     }
-    
+
     // If no group ID is set, just check payment status
     return true;
   } catch (error) {
@@ -859,31 +983,39 @@ bot.command("broadcast", isAdminMiddleware, async (ctx) => {
     let failureCount = 0;
     let notInGroupCount = 0;
 
+    // Get admin info for group invite link
+    const adminInfo = await getAdminInfo();
+
     // Send message to each paying user
     for (const user of payingUsers) {
       try {
         // Check if user is in the Telegram group
         const isInGroup = await isUserInGroup(user.telegramId);
-        
+
         if (!isInGroup) {
-          console.log(`User ${user.email} is not in the group, skipping broadcast`);
+          console.log(
+            `User ${user.email} is not in the group, skipping broadcast`
+          );
           notInGroupCount++;
           // Send a notification to the user that they need to join the group
           try {
             await bot.telegram.sendMessage(
               user.telegramId,
               `<b>📢 Broadcast Notice</b>\n\n` +
-              `We tried to send you a broadcast message, but you're not currently a member of our Telegram group.\n\n` +
-              `Please join our group to receive educational content and broadcasts. After joining, you'll start receiving messages again.\n\n` +
-              `Use /howtojoin to get instructions on how to join our group.`,
+                `We tried to send you a broadcast message, but you're not currently a member of our Telegram group.\n\n` +
+                `Please join our group to receive educational content and broadcasts. After joining, you'll start receiving messages again.\n\n` +
+                `Use /howtojoin to get instructions on how to join our group.`,
               { parse_mode: "HTML" }
             );
           } catch (notifyError) {
-            console.error(`Failed to notify user ${user.telegramId} about group membership:`, notifyError);
+            console.error(
+              `Failed to notify user ${user.telegramId} about group membership:`,
+              notifyError
+            );
           }
           continue;
         }
-        
+
         await bot.telegram.sendMessage(
           user.telegramId,
           `<b>📢 Broadcast Message</b>\n\n${message}`,
@@ -901,16 +1033,16 @@ bot.command("broadcast", isAdminMiddleware, async (ctx) => {
 
     await ctx.reply(
       `<b>📬 Broadcast Summary</b>\n\n` +
-      `Total paying users: ${payingUsers.length}\n` +
-      `Successfully delivered: ${successCount}\n` +
-      `Not in group: ${notInGroupCount}\n` +
-      `Failed deliveries: ${failureCount}\n\n` +
-      (notInGroupCount > 0
-        ? `${notInGroupCount} users were notified that they need to join the group to receive broadcasts.\n\n`
-        : "") +
-      (failureCount > 0
-        ? "Some users may have blocked the bot or deleted their account."
-        : ""),
+        `Total paying users: ${payingUsers.length}\n` +
+        `Successfully delivered: ${successCount}\n` +
+        `Not in group: ${notInGroupCount}\n` +
+        `Failed deliveries: ${failureCount}\n\n` +
+        (notInGroupCount > 0
+          ? `${notInGroupCount} users were notified that they need to join the group to receive broadcasts.\n\n`
+          : "") +
+        (failureCount > 0
+          ? "Some users may have blocked the bot or deleted their account."
+          : ""),
       { parse_mode: "HTML" }
     );
   } catch (error) {
@@ -921,89 +1053,25 @@ bot.command("broadcast", isAdminMiddleware, async (ctx) => {
   }
 });
 
-// Command to provide instructions on how to join the group
-bot.command("howtojoin", async (ctx) => {
-  try {
-    const userId = ctx.from.id;
-    
-    // Check if this is an admin
-    const adminId = await getAdminId();
-    const isAdminUser = adminId && userId.toString() === adminId.toString();
-    
-    // Check if user is connected
-    let user = null;
-    if (!isAdminUser) {
-      user = await User.findOne({ telegramId: userId });
-    } else {
-      user = await Admin.findOne({ telegramId: userId });
-    }
-    
-    if (!user && !isAdminUser) {
-      await ctx.reply(
-        "ℹ️ You are not yet connected to your SBM Forex Academy account. \n" +
-        "Please connect your account first using the /connect command."
-      );
-      return;
-    }
-    
-    // Provide group joining instructions
-    if (process.env.TELEGRAM_GROUP_ID) {
-      // Use HTML formatting instead of Markdown to avoid parsing issues
-      await ctx.reply(
-        `<b>📢 How to Join Our Telegram Group</b>\n\n` +
-        `To receive educational content and broadcasts, please follow these steps:\n\n` +
-        `1. Click on this link to join our group: ${process.env.TELEGRAM_GROUP_INVITE_LINK || "Contact admin for the group link"}\n` +
-        `2. After joining, you'll automatically start receiving educational content\n` +
-        `3. If you've already joined but still see membership issues, try leaving and rejoining the group\n\n` +
-        `Once you've joined the group, you'll be able to receive all broadcast messages and educational content.\n\n` +
-        `If you continue to experience issues, please contact our support team.`,
-        { parse_mode: "HTML" }
-      );
-    } else {
-      await ctx.reply(
-        "<b>📢 Group Information</b>\n\n" +
-        "Our Telegram group information will be provided soon. Please check back later or contact support for more details.",
-        { parse_mode: "HTML" }
-      );
-    }
-    
-    // Show menu again
-    if (user) {
-      await showMainMenu(ctx, user);
-    }
-  } catch (error) {
-    console.error("Error in howtojoin command:", error);
-    // Send a plain text message as a fallback
-    try {
-      await ctx.reply(
-        "📢 How to Join Our Telegram Group\n\n" +
-        "To receive educational content and broadcasts, please follow these steps:\n\n" +
-        "1. Click on this link to join our group: " + (process.env.TELEGRAM_GROUP_INVITE_LINK || "Contact admin for the group link") + "\n" +
-        "2. After joining, you'll automatically start receiving educational content\n" +
-        "3. If you've already joined but still see membership issues, try leaving and rejoining the group\n\n" +
-        "Once you've joined the group, you'll be able to receive all broadcast messages and educational content.\n\n" +
-        "If you continue to experience issues, please contact our support team."
-      );
-    } catch (fallbackError) {
-      console.error("Fallback error in howtojoin command:", fallbackError);
-      await ctx.reply("An error occurred while providing group joining instructions. Please try again later.");
-    }
-  }
-});
-
 // Listen for new messages in the group
 bot.on("message", async (ctx) => {
   try {
+    // Get admin info
+    const adminInfo = await getAdminInfo();
+
     // Check if the message is from the designated group
-    if (ctx.chat.id.toString() === process.env.TELEGRAM_GROUP_ID) {
+    if (
+      adminInfo.groupInviteLink &&
+      ctx.chat.id.toString() === process.env.TELEGRAM_GROUP_ID
+    ) {
       // Get the message sender's information
       const senderId = ctx.message.from.id;
-      
-      // Get admin ID from database
-      const adminId = await getAdminId();
 
       // Only allow admins to post messages that get forwarded
-      if (!adminId || senderId.toString() !== adminId.toString()) {
+      if (
+        !adminInfo.adminId ||
+        senderId.toString() !== adminInfo.adminId.toString()
+      ) {
         // Optionally send a private message to non-admins explaining the restriction
         try {
           await bot.telegram.sendMessage(
@@ -1036,31 +1104,38 @@ bot.on("message", async (ctx) => {
         try {
           // Check if user can receive messages (payment status + group membership)
           const canReceive = await canReceiveMessages(user.telegramId);
-          
+
           if (!canReceive) {
             // Check specifically if it's a group membership issue
-            const isInGroup = process.env.TELEGRAM_GROUP_ID ? await isUserInGroup(user.telegramId) : true;
-            
+            const isInGroup = process.env.TELEGRAM_GROUP_ID
+              ? await isUserInGroup(user.telegramId)
+              : true;
+
             if (process.env.TELEGRAM_GROUP_ID && !isInGroup) {
-              console.log(`User ${user.email} is not in the group, skipping message forwarding`);
+              console.log(
+                `User ${user.email} is not in the group, skipping message forwarding`
+              );
               notInGroupCount++;
               // Send a notification to the user that they need to join the group
               try {
                 await bot.telegram.sendMessage(
                   user.telegramId,
                   `<b>📢 Message Forwarding Notice</b>\n\n` +
-                  `We tried to forward a group message to you, but you're not currently a member of our Telegram group.\n\n` +
-                  `Please join our group to receive educational content. After joining, you'll start receiving messages again.\n\n` +
-                  `Use /howtojoin to get instructions on how to join our group.`,
+                    `We tried to forward a group message to you, but you're not currently a member of our Telegram group.\n\n` +
+                    `Please join our group to receive educational content. After joining, you'll start receiving messages again.\n\n` +
+                    `Use /howtojoin to get instructions on how to join our group.`,
                   { parse_mode: "HTML" }
                 );
               } catch (notifyError) {
-                console.error(`Failed to notify user ${user.telegramId} about group membership:`, notifyError);
+                console.error(
+                  `Failed to notify user ${user.telegramId} about group membership:`,
+                  notifyError
+                );
               }
             }
             continue;
           }
-          
+
           // Copy the message to the user
           await ctx.copyMessage(user.telegramId);
           successCount++;
@@ -1077,16 +1152,16 @@ bot.on("message", async (ctx) => {
       try {
         await ctx.reply(
           `<b>📬 Message Distribution Summary</b>\n\n` +
-          `Total paying users: ${payingUsers.length}\n` +
-          `Successfully delivered: ${successCount}\n` +
-          `Not in group: ${notInGroupCount}\n` +
-          `Failed deliveries: ${failureCount}\n\n` +
-          (notInGroupCount > 0
-            ? `${notInGroupCount} users were notified that they need to join the group to receive messages.\n\n`
-            : "") +
-          (failureCount > 0
-            ? "Some users may have blocked the bot or deleted their account."
-            : ""),
+            `Total paying users: ${payingUsers.length}\n` +
+            `Successfully delivered: ${successCount}\n` +
+            `Not in group: ${notInGroupCount}\n` +
+            `Failed deliveries: ${failureCount}\n\n` +
+            (notInGroupCount > 0
+              ? `${notInGroupCount} users were notified that they need to join the group to receive messages.\n\n`
+              : "") +
+            (failureCount > 0
+              ? "Some users may have blocked the bot or deleted their account."
+              : ""),
           { parse_mode: "HTML" }
         );
       } catch (error) {

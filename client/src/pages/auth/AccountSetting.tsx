@@ -235,18 +235,10 @@ const AccountSettingPage = () => {
           </Link>
           <Link
             to="/dashboard/account"
-            className="flex items-center gap-3 text-gold font-semibold"
+            className="flex items-center gap-3 text-gray-400 hover:text-gold transition"
           >
             <Settings className="h-5 w-5" /> Account Setting
           </Link>
-          <a
-            href={`https://t.me/${import.meta.env.VITE_TELEGRAM_BOT_USERNAME}`}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex items-center gap-3 text-gray-400 hover:text-gold transition"
-          >
-            <Send className="h-5 w-5" /> Telegram Bot
-          </a>
         </nav>
       </aside>
 
@@ -279,18 +271,6 @@ const AccountSettingPage = () => {
                 >
                   <Settings className="h-4 w-4" /> Account Setting
                 </Link>
-                <a
-                  href={`https://t.me/${import.meta.env.VITE_TELEGRAM_BOT_USERNAME}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center gap-2 px-4 py-2 text-gray-900 hover:bg-gold/10 transition"
-                  onMouseDown={(e) => {
-                    e.stopPropagation();
-                    setMenuOpen(false);
-                  }}
-                >
-                  <Send className="h-4 w-4" /> Telegram Bot
-                </a>
                 <button
                   className="flex items-center gap-2 px-4 py-2 w-full text-left text-red-600 hover:bg-gold/10 transition"
                   onMouseDown={(e) => {
@@ -324,15 +304,6 @@ const AccountSettingPage = () => {
                 >
                   <Settings className="h-4 w-4" /> Account Setting
                 </Link>
-                <a
-                  href={`https://t.me/${import.meta.env.VITE_TELEGRAM_BOT_USERNAME}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center gap-2 px-4 py-2 text-gray-900 hover:bg-gold/10 transition"
-                  onClick={() => setMenuOpen(false)}
-                >
-                  <Send className="h-4 w-4" /> Telegram Bot
-                </a>
                 <button
                   className="flex items-center gap-2 px-4 py-2 w-full text-left text-red-600 hover:bg-gold/10 transition"
                   onClick={handleLogout}
