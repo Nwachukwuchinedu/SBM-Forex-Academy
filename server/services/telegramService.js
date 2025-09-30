@@ -4,6 +4,7 @@ import bot, { isAdminMiddleware } from "../utils/telegramBot.js";
 // Function to start the Telegram bot
 const startTelegramBot = async () => {
   try {
+    console.log("Starting Telegram bot...");
     // Launch the bot
     await bot.launch();
     console.log("✅ Telegram bot is running");
@@ -29,10 +30,16 @@ const setupBotMenu = async () => {
       { command: "start", description: "Start the bot" },
       { command: "connect", description: "Connect your account" },
       { command: "token", description: "Connect using a token" },
-      { command: "status", description: "Check your payment status" },
+      {
+        command: "howtojoin",
+        description: "Get instructions on how to join the group",
+      },
+      {
+        command: "services",
+        description: "View available services and payment information",
+      },
       { command: "help", description: "Show help message" },
-      { command: "menu", description: "Show bot menu" },
-      { command: "admin", description: "Admin panel (admin only)" },
+      { command: "logout", description: "Logout from your account" },
     ]);
     console.log("✅ Telegram bot menu configured");
   } catch (error) {

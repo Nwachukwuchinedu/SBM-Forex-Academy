@@ -25,6 +25,10 @@ bot.telegram.setMyCommands([
     command: "howtojoin",
     description: "Get instructions on how to join the group",
   },
+  {
+    command: "services",
+    description: "View available services and payment information",
+  },
   { command: "help", description: "Show help message" },
   { command: "logout", description: "Logout from your account" },
 ]);
@@ -51,7 +55,9 @@ const checkAdmin = async (ctx) => {
   try {
     const userId = ctx.from.id;
     const adminInfo = await getAdminInfo();
-    return adminInfo.adminId && userId.toString() === adminInfo.adminId.toString();
+    return (
+      adminInfo.adminId && userId.toString() === adminInfo.adminId.toString()
+    );
   } catch (error) {
     console.error("Error in admin check:", error);
     return false;
@@ -145,30 +151,42 @@ const verifyAdminConnection = async (userId, connectionToken) => {
 const showMainMenu = async (ctx, user) => {
   // Check if this is an admin user
   const adminInfo = await getAdminInfo();
-  const isAdminUser = adminInfo.adminId && ctx.from.id.toString() === adminInfo.adminId.toString();
+  const isAdminUser =
+    adminInfo.adminId &&
+    ctx.from.id.toString() === adminInfo.adminId.toString();
 
   if (isAdminUser) {
-    // Admin menu
+    // Admin menu with hierarchical navigation
     await ctx.reply(
-      `🛡️ Admin Dashboard\n\nWelcome ${user.firstName || user.username}!`,
-      Markup.inlineKeyboard([
-        [Markup.button.callback("📊 Check Status", "check_status")],
-        [Markup.button.callback("👥 Manage Users", "manage_users")],
-        [Markup.button.callback("📢 Broadcast Message", "broadcast")],
-        [Markup.button.callback("🔄 Toggle Payment", "toggle_payment")],
-        [Markup.button.callback("❓ Help", "help")],
-        [Markup.button.callback("🚪 Logout", "logout")],
-      ]).oneTime()
+      `<strong>🛡️ ADMIN DASHBOARD</strong>\n\n` +
+        `Welcome, <strong>${user.firstName || user.username}</strong>!\n\n` +
+        `<em>You have full administrative privileges.</em>`,
+      {
+        parse_mode: "HTML",
+        ...Markup.inlineKeyboard([
+          [Markup.button.callback("📊 Status & Info", "check_status")],
+          [Markup.button.callback("👥 User Management", "user_management")],
+          [Markup.button.callback("📢 Communications", "communications")],
+          [Markup.button.callback("❓ Help & Support", "help")],
+          [Markup.button.callback("🚪 Logout", "logout")],
+        ]).oneTime(),
+      }
     );
   } else {
     // Regular user menu
     await ctx.reply(
-      `👤 User Dashboard\n\nWelcome ${user.firstName}!`,
-      Markup.inlineKeyboard([
-        [Markup.button.callback("📊 Check Status", "check_status")],
-        [Markup.button.callback("❓ Help", "help")],
-        [Markup.button.callback("🚪 Logout", "logout")],
-      ]).oneTime()
+      `<strong>👤 USER DASHBOARD</strong>\n\n` +
+        `Welcome, <strong>${user.firstName}</strong>!\n\n` +
+        `<em>Access your services and account information.</em>`,
+      {
+        parse_mode: "HTML",
+        ...Markup.inlineKeyboard([
+          [Markup.button.callback("📊 Account Status", "check_status")],
+          [Markup.button.callback("💳 Services & Payments", "services_info")],
+          [Markup.button.callback("❓ Help & Support", "help")],
+          [Markup.button.callback("🚪 Logout", "logout")],
+        ]).oneTime(),
+      }
     );
   }
 };
@@ -406,7 +424,8 @@ bot.action("help", async (ctx) => {
 
   // Check if this is an admin
   const adminInfo = await getAdminInfo();
-  const isAdminUser = adminInfo.adminId && userId.toString() === adminInfo.adminId.toString();
+  const isAdminUser =
+    adminInfo.adminId && userId.toString() === adminInfo.adminId.toString();
 
   let message = "<b>🚀 SBM Forex Academy Bot</b>\n\n";
 
@@ -429,6 +448,7 @@ bot.action("help", async (ctx) => {
   message += "• /connect - Connect your account\n";
   message += "• /token - Connect using a token\n";
   message += "• /howtojoin - Get instructions on how to join the group\n";
+  message += "• /services - View available services and payment information\n";
   message += "• /help - Show this help message\n";
   message += "• logout - Logout from your account\n\n";
 
@@ -511,7 +531,7 @@ bot.action("manage_users", async (ctx) => {
     const users = await User.find({}).sort({ createdAt: -1 });
 
     if (!users || users.length === 0) {
-      await ctx.reply("📭 No users found in the system.");
+      await ctx.reply("📪 No users found in the system.");
       return;
     }
 
@@ -793,7 +813,8 @@ bot.help(async (ctx) => {
 
   // Check if this is an admin
   const adminInfo = await getAdminInfo();
-  const isAdminUser = adminInfo.adminId && userId.toString() === adminInfo.adminId.toString();
+  const isAdminUser =
+    adminInfo.adminId && userId.toString() === adminInfo.adminId.toString();
 
   let message = "<b>🚀 SBM Forex Academy Bot</b>\n\n";
 
@@ -816,6 +837,7 @@ bot.help(async (ctx) => {
   message += "• /connect - Connect your account\n";
   message += "• /token - Connect using a token\n";
   message += "• /howtojoin - Get instructions on how to join the group\n";
+  message += "• /services - View available services and payment information\n";
   message += "• /help - Show this help message\n";
   message += "• /logout - Logout from your account\n\n";
 
@@ -840,7 +862,10 @@ const isAdminMiddleware = async (ctx, next) => {
     const adminInfo = await getAdminInfo();
 
     // Check if this user ID matches the admin ID in the database
-    if (adminInfo.adminId && userId.toString() === adminInfo.adminId.toString()) {
+    if (
+      adminInfo.adminId &&
+      userId.toString() === adminInfo.adminId.toString()
+    ) {
       return next();
     }
 
@@ -1170,6 +1195,334 @@ bot.on("message", async (ctx) => {
     }
   } catch (error) {
     console.error("Error in message forwarding:", error);
+  }
+});
+
+// Admin User Management Menu
+bot.action("user_management", async (ctx) => {
+  // Check if user is admin
+  const isAdminUser = await checkAdmin(ctx);
+
+  if (!isAdminUser) {
+    await ctx.reply("❌ You do not have permission to perform this action.");
+    return;
+  }
+
+  await ctx.reply(
+    `<strong>👥 USER MANAGEMENT</strong>\n\n` +
+      `Manage user accounts and permissions.`,
+    {
+      parse_mode: "HTML",
+      ...Markup.inlineKeyboard([
+        [Markup.button.callback("📋 View All Users", "manage_users")],
+        [Markup.button.callback("🔄 Toggle Payment Status", "toggle_payment")],
+        [Markup.button.callback("◀️ Back to Main Menu", "main_menu")],
+      ]).oneTime(),
+    }
+  );
+});
+
+// Admin Communications Menu
+bot.action("communications", async (ctx) => {
+  // Check if user is admin
+  const isAdminUser = await checkAdmin(ctx);
+
+  if (!isAdminUser) {
+    await ctx.reply("❌ You do not have permission to perform this action.");
+    return;
+  }
+
+  await ctx.reply(
+    `<strong>📢 COMMUNICATIONS</strong>\n\n` +
+      `Send messages and manage communications.`,
+    {
+      parse_mode: "HTML",
+      ...Markup.inlineKeyboard([
+        [Markup.button.callback("📬 Broadcast Message", "broadcast")],
+        [Markup.button.callback("togroup", "togroup")],
+        [Markup.button.callback("◀️ Back to Main Menu", "main_menu")],
+      ]).oneTime(),
+    }
+  );
+});
+
+// User Services & Payments Menu
+bot.action("services_info", async (ctx) => {
+  await ctx.reply(
+    `<strong>💳 SERVICES & PAYMENTS</strong>\n\n` +
+      `View available services and payment options.`,
+    {
+      parse_mode: "HTML",
+      ...Markup.inlineKeyboard([
+        [Markup.button.callback("📚 Service Details", "view_services")],
+        [Markup.button.callback("💰 Payment Options", "payment_info")],
+        [Markup.button.callback("◀️ Back to Main Menu", "main_menu")],
+      ]).oneTime(),
+    }
+  );
+});
+
+// View Services Details
+bot.action("view_services", async (ctx) => {
+  // Instead of trying to call the command directly, we'll recreate the functionality
+  try {
+    const userId = ctx.from.id;
+
+    // Check if user is connected
+    let user = await User.findOne({ telegramId: userId });
+    const admin = await Admin.findOne({ telegramId: userId });
+
+    // If not a regular user, check if it's an admin
+    if (!user && admin) {
+      user = admin;
+    }
+
+    let message =
+      `<strong>💳 SBM FOREX ACADEMY SERVICES</strong>\n` +
+      `<em>Comprehensive trading solutions for all skill levels</em>\n\n`;
+
+    if (!user) {
+      message +=
+        `⚠️ <strong>Account Not Connected</strong>\n` +
+        `Please <u>connect your account</u> using /connect to access personalized services.\n\n`;
+    }
+
+    // Mentorship Packages
+    message +=
+      `<strong>🎓 MENTORSHIP PACKAGES</strong>\n` +
+      `<em>Expert guidance to elevate your trading skills</em>\n\n` +
+      `<u>1. Standard Mentorship</u>\n` +
+      `<strong>Price:</strong> $210/month\n` +
+      `• Monthly access to expert trading insights and strategies\n` +
+      `• Personalized support and feedback\n` +
+      `• Exclusive trading community access\n` +
+      `• Regular market analysis and updates\n\n` +
+      `<u>2. VIP Mentorship Package</u>\n` +
+      `<strong>Price:</strong> $1000/month\n` +
+      `• All Standard Mentorship benefits\n` +
+      `• Physical teaching and training at our facility\n` +
+      `• Daily meals and accommodation (for out-of-town participants)\n` +
+      `• One-on-one personalized coaching\n` +
+      `• Priority access to expert analysis and signals\n\n`;
+
+    // Account Management Services
+    message +=
+      `<strong>💼 ACCOUNT MANAGEMENT</strong>\n` +
+      `<em>Professional management for consistent profits</em>\n\n` +
+      `<u>1. Basic Account Management</u>\n` +
+      `<strong>Price:</strong> $500/month\n` +
+      `• Professional account setup and configuration\n` +
+      `• Regular market analysis and trading signals\n` +
+      `• Basic risk management and position sizing\n\n` +
+      `<u>2. Advanced Account Management</u>\n` +
+      `<strong>Price:</strong> $1000 - $5000/month\n` +
+      `• All Basic package benefits\n` +
+      `• Customized trading strategies and plans\n` +
+      `• Advanced risk management and portfolio optimization\n` +
+      `• Regular performance analysis and reporting\n\n` +
+      `<u>3. Premium Account Management</u>\n` +
+      `<strong>Price:</strong> $5000 - $10000/month\n` +
+      `• All Advanced package benefits\n` +
+      `• Personalized trading coach and dedicated manager\n` +
+      `• Advanced technical analysis and market research\n` +
+      `• High-net-worth account management\n\n`;
+
+    // Signal Provision Service
+    message +=
+      `<strong>📈 SIGNAL PROVISION</strong>\n` +
+      `<em>Accurate signals for informed trading decisions</em>\n\n` +
+      `<u>Forex Trading Signals Service</u>\n` +
+      `<strong>Price:</strong> $80/month\n` +
+      `• Accurate and timely trading signals\n` +
+      `• Expert analysis and market insights\n` +
+      `• Trade entry and exit strategies\n\n`;
+
+    // Payment Information
+    message +=
+      `<strong>💰 PAYMENT OPTIONS</strong>\n` +
+      `<em>Bank transfer is our only accepted payment method</em>\n\n` +
+      `<u>Bank Transfer:</u>\n` +
+      `<strong>Account Name:</strong> <code>Emmanuel Chidiebere</code>\n` +
+      `<strong>Account Number:</strong> <code>6162598082</code>\n` +
+      `<strong>Bank:</strong> <em>Fidelity Bank</em>\n\n` +
+      `<u>After payment:</u>\n` +
+      `<strong>Send proof to WhatsApp:</strong>\n` +
+      `<a href="https://wa.me/2349032085666">Click here to chat</a>\n\n` +
+      `<em>For more information, visit our website or contact support.</em>`;
+
+    await ctx.reply(message, { parse_mode: "HTML" });
+
+    // Show menu again if user is connected
+    if (user) {
+      await ctx.reply(`<strong>Need more information?</strong>`, {
+        parse_mode: "HTML",
+        ...Markup.inlineKeyboard([
+          [Markup.button.callback("💳 Payment Options", "payment_info")],
+          [Markup.button.callback("◀️ Back to Main Menu", "main_menu")],
+        ]).oneTime(),
+      });
+    }
+  } catch (error) {
+    console.error("Error in view_services action:", error);
+    await ctx.reply(
+      "An error occurred while fetching service information. Please try again later."
+    );
+  }
+});
+
+// Payment Information
+bot.action("payment_info", async (ctx) => {
+  await ctx.reply(
+    `<strong>💰 PAYMENT OPTIONS</strong>\n\n` +
+      `<strong>Bank Transfer:</strong>\n` +
+      `Account Name: <code>Emmanuel Chidiebere</code>\n` +
+      `Account Number: <code>6162598082</code>\n` +
+      `Bank: <em>Fidelity Bank</em>\n\n` +
+      `<strong>After payment, send proof to WhatsApp:</strong>\n` +
+      `<a href="https://wa.me/2349032085666">Click here to chat</a>\n\n` +
+      `<em>Contact support for other payment methods.</em>`,
+    {
+      parse_mode: "HTML",
+      reply_markup: {
+        inline_keyboard: [
+          [{ text: "◀️ Back", callback_data: "services_info" }],
+        ],
+      },
+    }
+  );
+});
+
+// Back to Main Menu
+bot.action("main_menu", async (ctx) => {
+  const userId = ctx.from.id;
+
+  // Check if this is an admin
+  const adminInfo = await getAdminInfo();
+  const isAdminUser =
+    adminInfo.adminId && userId.toString() === adminInfo.adminId.toString();
+
+  if (isAdminUser) {
+    const admin = await Admin.findOne({ role: "admin", telegramId: userId });
+    if (admin) {
+      await showMainMenu(ctx, admin);
+    }
+  } else {
+    const user = await User.findOne({ telegramId: userId });
+    if (user) {
+      await showMainMenu(ctx, user);
+    }
+  }
+});
+
+// Command to display services and payment information
+console.log("Registering /services command");
+bot.command("services", async (ctx) => {
+  try {
+    console.log("Services command triggered by user:", ctx.from.id);
+    const userId = ctx.from.id;
+
+    // Check if user is connected
+    let user = await User.findOne({ telegramId: userId });
+    const admin = await Admin.findOne({ telegramId: userId });
+
+    // If not a regular user, check if it's an admin
+    if (!user && admin) {
+      user = admin;
+    }
+
+    let message =
+      `<strong>💳 SBM FOREX ACADEMY SERVICES</strong>\n` +
+      `<em>Comprehensive trading solutions for all skill levels</em>\n\n`;
+
+    if (!user) {
+      message +=
+        `⚠️ <strong>Account Not Connected</strong>\n` +
+        `Please <u>connect your account</u> using /connect to access personalized services.\n\n`;
+    }
+
+    // Mentorship Packages
+    message +=
+      `<strong>🎓 MENTORSHIP PACKAGES</strong>\n` +
+      `<em>Expert guidance to elevate your trading skills</em>\n\n` +
+      `<u>1. Standard Mentorship</u>\n` +
+      `<strong>Price:</strong> $210/month\n` +
+      `• Monthly access to expert trading insights and strategies\n` +
+      `• Personalized support and feedback\n` +
+      `• Exclusive trading community access\n` +
+      `• Regular market analysis and updates\n\n` +
+      `<u>2. VIP Mentorship Package</u>\n` +
+      `<strong>Price:</strong> $1000/month\n` +
+      `• All Standard Mentorship benefits\n` +
+      `• Physical teaching and training at our facility\n` +
+      `• Daily meals and accommodation (for out-of-town participants)\n` +
+      `• One-on-one personalized coaching\n` +
+      `• Priority access to expert analysis and signals\n\n`;
+
+    // Account Management Services
+    message +=
+      `<strong>💼 ACCOUNT MANAGEMENT</strong>\n` +
+      `<em>Professional management for consistent profits</em>\n\n` +
+      `<u>1. Basic Account Management</u>\n` +
+      `<strong>Price:</strong> $500/month\n` +
+      `• Professional account setup and configuration\n` +
+      `• Regular market analysis and trading signals\n` +
+      `• Basic risk management and position sizing\n\n` +
+      `<u>2. Advanced Account Management</u>\n` +
+      `<strong>Price:</strong> $1000 - $5000/month\n` +
+      `• All Basic package benefits\n` +
+      `• Customized trading strategies and plans\n` +
+      `• Advanced risk management and portfolio optimization\n` +
+      `• Regular performance analysis and reporting\n\n` +
+      `<u>3. Premium Account Management</u>\n` +
+      `<strong>Price:</strong> $5000 - $10000/month\n` +
+      `• All Advanced package benefits\n` +
+      `• Personalized trading coach and dedicated manager\n` +
+      `• Advanced technical analysis and market research\n` +
+      `• High-net-worth account management\n\n`;
+
+    // Signal Provision Service
+    message +=
+      `<strong>📈 SIGNAL PROVISION</strong>\n` +
+      `<em>Accurate signals for informed trading decisions</em>\n\n` +
+      `<u>Forex Trading Signals Service</u>\n` +
+      `<strong>Price:</strong> $80/month\n` +
+      `• Accurate and timely trading signals\n` +
+      `• Expert analysis and market insights\n` +
+      `• Trade entry and exit strategies\n\n`;
+
+    // Payment Information
+    message +=
+      `<strong>💰 PAYMENT OPTIONS</strong>\n` +
+      `<em>Bank transfer is our only accepted payment method</em>\n\n` +
+      `<u>Bank Transfer:</u>\n` +
+      `<strong>Account Name:</strong> <code>Emmanuel Chidiebere</code>\n` +
+      `<strong>Account Number:</strong> <code>6162598082</code>\n` +
+      `<strong>Bank:</strong> <em>Fidelity Bank</em>\n\n` +
+      `<u>After payment:</u>\n` +
+      `<strong>Send proof to WhatsApp:</strong>\n` +
+      `<a href="https://wa.me/2349032085666">Click here to chat</a>\n\n` +
+      `<em>For more information, visit our website or contact support.</em>`;
+
+    console.log("Sending services message to user:", userId);
+    await ctx.reply(message, { parse_mode: "HTML" });
+
+    // Show menu again if user is connected
+    if (user) {
+      await ctx.reply(`<strong>Need more information?</strong>`, {
+        parse_mode: "HTML",
+        reply_markup: {
+          inline_keyboard: [
+            [{ text: "💳 Payment Options", callback_data: "payment_info" }],
+            [{ text: "◀️ Back to Main Menu", callback_data: "main_menu" }],
+          ],
+        },
+      });
+    }
+  } catch (error) {
+    console.error("Error in services command:", error);
+    await ctx.reply(
+      "An error occurred while fetching service information. Please try again later."
+    );
   }
 });
 
