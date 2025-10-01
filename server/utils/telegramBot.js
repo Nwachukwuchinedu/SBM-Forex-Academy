@@ -16,6 +16,48 @@ bot.catch((error) => {
   console.error("Telegram Bot Error:", error);
 });
 
+// Middleware to block commands in groups (except admin commands)
+bot.use(async (ctx, next) => {
+  // Check if this is a group and if it's a command
+  if ((ctx.chat.type === 'group' || ctx.chat.type === 'supergroup') &&
+    ctx.message && ctx.message.text && ctx.message.text.startsWith('/')) {
+
+    const command = ctx.message.text.split(' ')[0];
+
+    // Allow admin commands in groups
+    const adminCommands = ['/paidmessage', '/broadcast', '/togglepayment'];
+    if (adminCommands.includes(command)) {
+      // Check if user is admin before allowing
+      try {
+        const adminInfo = await getAdminInfo();
+        const isAdminUser = adminInfo.adminId &&
+          ctx.from.id.toString() === adminInfo.adminId.toString();
+
+        if (isAdminUser) {
+          // Allow admin command to proceed
+          return next();
+        }
+      } catch (error) {
+        console.error("Error checking admin status:", error);
+      }
+    }
+
+    // Block ALL other commands in groups and redirect to private chat
+    await ctx.reply(
+      `👋 Hi ${ctx.from.first_name || 'there'}!\n\n` +
+      `Commands should be used privately with the bot, not in the group.\n\n` +
+      `Please start a private conversation with me and use your commands there! 😊\n\n` +
+      `Click here to start: [Start Private Chat](https://t.me/${process.env.BOT_USERNAME || 'SBMforexbot'})\n\n` +
+      `Available commands: /start, /connect, /services, /help`,
+      { parse_mode: "Markdown" }
+    );
+    return; // Stop execution, don't call next()
+  }
+
+  // If not a group command, continue to normal handlers
+  return next();
+});
+
 // Set bot commands menu - only general commands for all users
 bot.telegram.setMyCommands([
   { command: "start", description: "Start the bot" },
@@ -271,6 +313,19 @@ bot.command("howtojoin", async (ctx) => {
 // Start command - Welcome message with role-based keyboard
 bot.start(async (ctx) => {
   try {
+    // If this is a group message, redirect to private chat
+    if (ctx.chat.type === 'group' || ctx.chat.type === 'supergroup') {
+      await ctx.reply(
+        `👋 Hi ${ctx.from.first_name || 'there'}!\n\n` +
+        `Welcome to SBM Forex Academy! 🚀\n\n` +
+        `To access your account and use all features, please start a private conversation with me.\n\n` +
+        `Click here to start: [Start Private Chat](https://t.me/${process.env.BOT_USERNAME || 'SBMforexbot'})\n\n` +
+        `Available commands: /connect, /services, /help`,
+        { parse_mode: "Markdown" }
+      );
+      return;
+    }
+
     const userId = ctx.from.id;
 
     // Check if this is an admin
@@ -464,7 +519,7 @@ bot.action("help", async (ctx) => {
     message += "• /togglepayment - Toggle user payment status\n\n";
   }
 
-  await ctx.reply(message);
+  await ctx.reply(message, { parse_mode: "HTML" });
 
   // Show menu again if user is connected
   const admin = isAdminUser
@@ -566,7 +621,7 @@ bot.action("manage_users", async (ctx) => {
         }\n`;
     });
 
-    await ctx.reply(message);
+    await ctx.reply(message, { parse_mode: "HTML" });
 
     // Show admin menu again
     const adminUser = await Admin.findOne({ telegramId: ctx.from.id });
@@ -599,7 +654,8 @@ bot.action("broadcast", async (ctx) => {
   await ctx.reply(
     "<b>📢 Broadcast Message</b>\n\n" +
     "To broadcast a message to all paying users, use the command:\n" +
-    "/broadcast Your message here"
+    "/broadcast Your message here",
+    { parse_mode: "HTML" }
   );
 });
 
@@ -621,7 +677,8 @@ bot.action("toggle_payment", async (ctx) => {
   await ctx.reply(
     "<b>🔄 Toggle Payment Status</b>\n\n" +
     "To toggle a user's payment status, use the command:\n" +
-    "/togglepayment [user_email]"
+    "/togglepayment [user_email]",
+    { parse_mode: "HTML" }
   );
 });
 
@@ -638,7 +695,8 @@ bot.command("connect", async (ctx) => {
       `3. Click "Generate Connection Token"\n` +
       `4. Copy the generated token\n` +
       `5. Send the token to this bot using the command: /token YOUR_TOKEN_HERE\n\n` +
-      `Once connected, you'll receive educational content from the group.`
+      `Once connected, you'll receive educational content from the group.`,
+      { parse_mode: "HTML" }
     );
   } catch (error) {
     console.error("Error in connect command:", error);
@@ -858,7 +916,7 @@ bot.help(async (ctx) => {
     message += "• /togglepayment - Toggle user payment status\n\n";
   }
 
-  await ctx.reply(message);
+  await ctx.reply(message, { parse_mode: "HTML" });
 
   // Show menu again if user is connected
   const admin = isAdminUser
@@ -934,7 +992,8 @@ bot.command("togglepayment", isAdminMiddleware, async (ctx) => {
       ")</b>\n" +
       "<b>New status: " +
       (user.paymentStatus ? "Paid" : "Not Paid") +
-      "</b>"
+      "</b>",
+      { parse_mode: "HTML" }
     );
 
     // Send a notification to the user about their status change
@@ -1071,7 +1130,9 @@ bot.command("broadcast", isAdminMiddleware, async (ctx) => {
       }
     }
 
-    await ctx.reply(
+    // Send broadcast summary to admin privately (not in group)
+    await bot.telegram.sendMessage(
+      ctx.from.id,
       `<b>📬 Broadcast Summary</b>\n\n` +
       `Total paying users: ${payingUsers.length}\n` +
       `Successfully delivered: ${successCount}\n` +
@@ -1087,7 +1148,8 @@ bot.command("broadcast", isAdminMiddleware, async (ctx) => {
     );
   } catch (error) {
     console.error("Error in broadcast command:", error);
-    await ctx.reply(
+    await bot.telegram.sendMessage(
+      ctx.from.id,
       "An error occurred while sending the broadcast message. Please try again later."
     );
   }
@@ -1210,6 +1272,8 @@ bot.command("paidmessage", isAdminMiddleware, async (ctx) => {
 // Listen for new messages in the group
 bot.on("message", async (ctx) => {
   try {
+    // Commands in groups are now handled by middleware above
+
     // Get admin info
     const adminInfo = await getAdminInfo();
 
