@@ -1,6 +1,7 @@
 // Import required modules
 import { Telegraf, Markup } from "telegraf";
 import dotenv from "dotenv";
+
 import User from "../models/User.js";
 import Admin from "../models/Admin.js";
 import axios from "axios";
@@ -19,18 +20,22 @@ bot.catch((error) => {
 // Middleware to block commands in groups (except admin commands)
 bot.use(async (ctx, next) => {
   // Check if this is a group and if it's a command
-  if ((ctx.chat.type === 'group' || ctx.chat.type === 'supergroup') &&
-    ctx.message && ctx.message.text && ctx.message.text.startsWith('/')) {
-
-    const command = ctx.message.text.split(' ')[0];
+  if (
+    (ctx.chat.type === "group" || ctx.chat.type === "supergroup") &&
+    ctx.message &&
+    ctx.message.text &&
+    ctx.message.text.startsWith("/")
+  ) {
+    const command = ctx.message.text.split(" ")[0];
 
     // Allow admin commands in groups
-    const adminCommands = ['/paidmessage', '/broadcast', '/togglepayment'];
+    const adminCommands = ["/paidmessage", "/broadcast", "/togglepayment"];
     if (adminCommands.includes(command)) {
       // Check if user is admin before allowing
       try {
         const adminInfo = await getAdminInfo();
-        const isAdminUser = adminInfo.adminId &&
+        const isAdminUser =
+          adminInfo.adminId &&
           ctx.from.id.toString() === adminInfo.adminId.toString();
 
         if (isAdminUser) {
@@ -44,10 +49,11 @@ bot.use(async (ctx, next) => {
 
     // Block ALL other commands in groups and redirect to private chat
     await ctx.reply(
-      `👋 Hi ${ctx.from.first_name || 'there'}!\n\n` +
+      `👋 Hi ${ctx.from.first_name || "there"}!\n\n` +
       `Commands should be used privately with the bot, not in the group.\n\n` +
       `Please start a private conversation with me and use your commands there! 😊\n\n` +
-      `Click here to start: [Start Private Chat](https://t.me/${process.env.BOT_USERNAME || 'SBMforexbot'})\n\n` +
+      `Click here to start: [Start Private Chat](https://t.me/${process.env.BOT_USERNAME || "SBMforexbot"
+      })\n\n` +
       `Available commands: /start, /connect, /services, /help`,
       { parse_mode: "Markdown" }
     );
@@ -67,16 +73,8 @@ bot.telegram.setMyCommands([
     command: "howtojoin",
     description: "Get instructions on how to join the group",
   },
-  {
-    command: "services",
-    description: "View available services and payment information",
-  },
   { command: "help", description: "Show help message" },
   { command: "logout", description: "Logout from your account" },
-  // Admin-only commands (will be shown only to admins)
-  { command: "broadcast", description: "Broadcast message to all paid users" },
-  { command: "paidmessage", description: "Send paid-only message to group" },
-  { command: "togglepayment", description: "Toggle user payment status" },
 ]);
 
 // Get admin ID and group invite link from database
@@ -219,17 +217,19 @@ const showMainMenu = async (ctx, user) => {
       }
     );
   } else {
-    // Regular user menu
+    // Regular user menu - streamlined for easy use
+    const paymentStatus = user.paymentStatus ? "✅ ACTIVE" : "❌ INACTIVE";
+
     await ctx.reply(
-      `<strong>👤 USER DASHBOARD</strong>\n\n` +
-      `Welcome, <strong>${user.firstName}</strong>!\n\n` +
-      `<em>Access your services and account information.</em>`,
+      `<strong>👤 WELCOME ${user.firstName.toUpperCase()}!</strong>\n\n` +
+      `💰 <strong>Payment Status:</strong> ${paymentStatus}\n\n` +
+      `What would you like to do today?`,
       {
         parse_mode: "HTML",
         ...Markup.inlineKeyboard([
-          [Markup.button.callback("📊 Account Status", "check_status")],
-          [Markup.button.callback("💳 Services & Payments", "services_info")],
-          [Markup.button.callback("❓ Help & Support", "help")],
+          [Markup.button.callback("🛒 Browse Services", "browse_services")],
+          [Markup.button.callback("📊 My Account", "check_status")],
+          [Markup.button.callback("❓ Help", "help")],
           [Markup.button.callback("🚪 Logout", "logout")],
         ]).oneTime(),
       }
@@ -314,12 +314,13 @@ bot.command("howtojoin", async (ctx) => {
 bot.start(async (ctx) => {
   try {
     // If this is a group message, redirect to private chat
-    if (ctx.chat.type === 'group' || ctx.chat.type === 'supergroup') {
+    if (ctx.chat.type === "group" || ctx.chat.type === "supergroup") {
       await ctx.reply(
-        `👋 Hi ${ctx.from.first_name || 'there'}!\n\n` +
+        `👋 Hi ${ctx.from.first_name || "there"}!\n\n` +
         `Welcome to SBM Forex Academy! 🚀\n\n` +
         `To access your account and use all features, please start a private conversation with me.\n\n` +
-        `Click here to start: [Start Private Chat](https://t.me/${process.env.BOT_USERNAME || 'SBMforexbot'})\n\n` +
+        `Click here to start: [Start Private Chat](https://t.me/${process.env.BOT_USERNAME || "SBMforexbot"
+        })\n\n` +
         `Available commands: /connect, /services, /help`,
         { parse_mode: "Markdown" }
       );
@@ -350,22 +351,26 @@ bot.start(async (ctx) => {
       return;
     }
 
-    // New user - provide instructions
-    let welcomeMessage =
-      "Welcome! Please log in to your account to connect with the bot.";
-
-    if (adminInfo.groupInviteLink) {
-      welcomeMessage +=
-        "\n\n📢 Important: To receive educational content and broadcasts, you must join our Telegram group. Please make sure you've joined the group before connecting your account.";
-    }
-
+    // New user - show quick start with video tutorial
     await ctx.reply(
-      welcomeMessage,
-      Markup.inlineKeyboard([
-        Markup.button.callback("Connect Account", "connect_account"),
-        Markup.button.callback("How to Join Group", "how_to_join"),
-        Markup.button.callback("Help", "help"),
-      ])
+      `🎥 <b>QUICK START GUIDE</b>\n\n` +
+      `Welcome to SBM Forex Academy! 🚀\n\n` +
+      `To get started, you need to connect your account. Watch this short video to learn how:\n\n` +
+      `📹 <b>How to Create Your Connection Token:</b>\n` +
+      `1. Go to our website and log in\n` +
+      `2. Navigate to Account Settings\n` +
+      `3. Click "Generate Connection Token"\n` +
+      `4. Copy the token\n` +
+      `5. Send it to this bot\n\n` +
+      `<i>💡 Tip: The video shows exactly where to find these options!</i>`,
+      {
+        parse_mode: "HTML",
+        ...Markup.inlineKeyboard([
+          [Markup.button.callback("📹 Watch Tutorial Video", "watch_tutorial")],
+          [Markup.button.callback("🔗 I Have My Token - Connect Now", "connect_with_token")],
+          [Markup.button.callback("❓ Need Help?", "help")]
+        ]).oneTime()
+      }
     );
   } catch (error) {
     console.error("Error in start command:", error);
@@ -374,6 +379,44 @@ bot.start(async (ctx) => {
 });
 
 // Handle callback queries (button presses) with proper role checking
+bot.action("watch_tutorial", async (ctx) => {
+  await ctx.reply(
+    `📹 <b>TUTORIAL VIDEO</b>\n\n` +
+    `Here's a step-by-step video showing exactly how to create your connection token:\n\n` +
+    `🎬 <b>Video Link:</b> [Click here to watch](https://your-video-url.com)\n\n` +
+    `After watching the video, you'll know exactly how to:\n` +
+    `✅ Log into your account\n` +
+    `✅ Find Account Settings\n` +
+    `✅ Generate your token\n` +
+    `✅ Connect to this bot\n\n` +
+    `<i>💡 The video is only 2 minutes long and very easy to follow!</i>`,
+    {
+      parse_mode: "HTML",
+      ...Markup.inlineKeyboard([
+        [Markup.button.callback("🔗 I'm Ready - Connect Now", "connect_with_token")],
+        [Markup.button.callback("❓ Still Need Help?", "help")]
+      ]).oneTime()
+    }
+  );
+});
+
+bot.action("connect_with_token", async (ctx) => {
+  await ctx.reply(
+    `🔗 <b>CONNECT YOUR ACCOUNT</b>\n\n` +
+    `Perfect! Now let's connect your account.\n\n` +
+    `📝 <b>Send your token like this:</b>\n` +
+    `<code>/token YOUR_TOKEN_HERE</code>\n\n` +
+    `For example: <code>/token abc123xyz</code>\n\n` +
+    `Just copy your token from the website and send it to me!`,
+    {
+      parse_mode: "HTML",
+      ...Markup.inlineKeyboard([
+        [Markup.button.callback("❓ Need Help?", "help")]
+      ]).oneTime()
+    }
+  );
+});
+
 bot.action("connect_account", async (ctx) => {
   await ctx.reply(
     `<b>🔗 Account Connection</b>\n\n` +
@@ -584,7 +627,10 @@ bot.action("manage_users", async (ctx) => {
   const isAdminUser = await checkAdmin(ctx);
 
   if (!isAdminUser) {
-    await ctx.reply(`❌ Sorry ${ctx.from.first_name || 'there'}, you don't have permission to perform this action. This feature is only available to administrators.`);
+    await ctx.reply(
+      `❌ Sorry ${ctx.from.first_name || "there"
+      }, you don't have permission to perform this action. This feature is only available to administrators.`
+    );
     // Show regular user menu
     const userId = ctx.from.id;
     const user = await User.findOne({ telegramId: userId });
@@ -641,7 +687,10 @@ bot.action("broadcast", async (ctx) => {
   const isAdminUser = await checkAdmin(ctx);
 
   if (!isAdminUser) {
-    await ctx.reply(`❌ Sorry ${ctx.from.first_name || 'there'}, you don't have permission to perform this action. This feature is only available to administrators.`);
+    await ctx.reply(
+      `❌ Sorry ${ctx.from.first_name || "there"
+      }, you don't have permission to perform this action. This feature is only available to administrators.`
+    );
     // Show regular user menu
     const userId = ctx.from.id;
     const user = await User.findOne({ telegramId: userId });
@@ -664,7 +713,10 @@ bot.action("toggle_payment", async (ctx) => {
   const isAdminUser = await checkAdmin(ctx);
 
   if (!isAdminUser) {
-    await ctx.reply(`❌ Sorry ${ctx.from.first_name || 'there'}, you don't have permission to perform this action. This feature is only available to administrators.`);
+    await ctx.reply(
+      `❌ Sorry ${ctx.from.first_name || "there"
+      }, you don't have permission to perform this action. This feature is only available to administrators.`
+    );
     // Show regular user menu
     const userId = ctx.from.id;
     const user = await User.findOne({ telegramId: userId });
@@ -945,7 +997,8 @@ const isAdminMiddleware = async (ctx, next) => {
     }
 
     await ctx.reply(
-      `❌ Sorry ${ctx.from.first_name || 'there'}, you don't have permission to perform this action. Admin access required.`
+      `❌ Sorry ${ctx.from.first_name || "there"
+      }, you don't have permission to perform this action. Admin access required.`
     );
   } catch (error) {
     console.error("Error in admin check:", error);
@@ -1180,7 +1233,10 @@ bot.command("paidmessage", isAdminMiddleware, async (ctx) => {
     const message = args.slice(1).join(" ");
 
     // Check if we're in a group and if it's the designated group
-    if (!ctx.chat || ctx.chat.type !== 'group' && ctx.chat.type !== 'supergroup') {
+    if (
+      !ctx.chat ||
+      (ctx.chat.type !== "group" && ctx.chat.type !== "supergroup")
+    ) {
       await bot.telegram.sendMessage(
         ctx.from.id,
         "❌ This command can only be used in the designated group."
@@ -1190,7 +1246,10 @@ bot.command("paidmessage", isAdminMiddleware, async (ctx) => {
 
     // Check if this is the correct group
     const adminInfo = await getAdminInfo();
-    if (process.env.TELEGRAM_GROUP_ID && ctx.chat.id.toString() !== process.env.TELEGRAM_GROUP_ID) {
+    if (
+      process.env.TELEGRAM_GROUP_ID &&
+      ctx.chat.id.toString() !== process.env.TELEGRAM_GROUP_ID
+    ) {
       await bot.telegram.sendMessage(
         ctx.from.id,
         "❌ This command can only be used in the designated group."
@@ -1236,7 +1295,11 @@ bot.command("paidmessage", isAdminMiddleware, async (ctx) => {
         // Send additional exclusive content to paid users privately
         await bot.telegram.sendMessage(
           user.telegramId,
-          `💎 <b>Exclusive Content for Paid Members</b>\n\n${message}\n\n<i>This is additional exclusive content only for paid members!</i>`,
+          `💎 <b>Exclusive Content for Paid Members</b>
+
+${message}
+
+<i>This is additional exclusive content only for paid members!</i>`,
           { parse_mode: "HTML" }
         );
         successCount++;
@@ -1397,7 +1460,10 @@ bot.action("user_management", async (ctx) => {
   const isAdminUser = await checkAdmin(ctx);
 
   if (!isAdminUser) {
-    await ctx.reply(`❌ Sorry ${ctx.from.first_name || 'there'}, you don't have permission to perform this action. This feature is only available to administrators.`);
+    await ctx.reply(
+      `❌ Sorry ${ctx.from.first_name || "there"
+      }, you don't have permission to perform this action. This feature is only available to administrators.`
+    );
     return;
   }
 
@@ -1421,7 +1487,10 @@ bot.action("communications", async (ctx) => {
   const isAdminUser = await checkAdmin(ctx);
 
   if (!isAdminUser) {
-    await ctx.reply(`❌ Sorry ${ctx.from.first_name || 'there'}, you don't have permission to perform this action. This feature is only available to administrators.`);
+    await ctx.reply(
+      `❌ Sorry ${ctx.from.first_name || "there"
+      }, you don't have permission to perform this action. This feature is only available to administrators.`
+    );
     return;
   }
 
@@ -1446,134 +1515,30 @@ bot.action("services_info", async (ctx) => {
     `View available services and payment options.`,
     {
       parse_mode: "HTML",
-      ...Markup.inlineKeyboard([
-        [Markup.button.callback("📚 Service Details", "view_services")],
-        [Markup.button.callback("💰 Payment Options", "payment_info")],
-        [Markup.button.callback("◀️ Back to Main Menu", "main_menu")],
-      ]).oneTime(),
+      reply_markup: {
+        inline_keyboard: [
+          [{ text: "📚 Service Details", callback_data: "view_services" }],
+          [{ text: "💰 Payment Options", callback_data: "payment_info" }],
+          [{ text: "◀️ Back to Main Menu", callback_data: "main_menu" }],
+        ],
+      },
     }
   );
-});
-
-// View Services Details
-bot.action("view_services", async (ctx) => {
-  // Instead of trying to call the command directly, we'll recreate the functionality
-  try {
-    const userId = ctx.from.id;
-
-    // Check if user is connected
-    let user = await User.findOne({ telegramId: userId });
-    const admin = await Admin.findOne({ telegramId: userId });
-
-    // If not a regular user, check if it's an admin
-    if (!user && admin) {
-      user = admin;
-    }
-
-    let message =
-      `<strong>💳 SBM FOREX ACADEMY SERVICES</strong>\n` +
-      `<em>Comprehensive trading solutions for all skill levels</em>\n\n`;
-
-    if (!user) {
-      message +=
-        `⚠️ <strong>Account Not Connected</strong>\n` +
-        `Please <u>connect your account</u> using /connect to access personalized services.\n\n`;
-    }
-
-    // Mentorship Packages
-    message +=
-      `<strong>🎓 MENTORSHIP PACKAGES</strong>\n` +
-      `<em>Expert guidance to elevate your trading skills</em>\n\n` +
-      `<u>1. Standard Mentorship</u>\n` +
-      `<strong>Price:</strong> $210/month\n` +
-      `• Monthly access to expert trading insights and strategies\n` +
-      `• Personalized support and feedback\n` +
-      `• Exclusive trading community access\n` +
-      `• Regular market analysis and updates\n\n` +
-      `<u>2. VIP Mentorship Package</u>\n` +
-      `<strong>Price:</strong> $1000/month\n` +
-      `• All Standard Mentorship benefits\n` +
-      `• Physical teaching and training at our facility\n` +
-      `• Daily meals and accommodation (for out-of-town participants)\n` +
-      `• One-on-one personalized coaching\n` +
-      `• Priority access to expert analysis and signals\n\n`;
-
-    // Account Management Services
-    message +=
-      `<strong>💼 ACCOUNT MANAGEMENT</strong>\n` +
-      `<em>Professional management for consistent profits</em>\n\n` +
-      `<u>1. Basic Account Management</u>\n` +
-      `<strong>Price:</strong> $500/month\n` +
-      `• Professional account setup and configuration\n` +
-      `• Regular market analysis and trading signals\n` +
-      `• Basic risk management and position sizing\n\n` +
-      `<u>2. Advanced Account Management</u>\n` +
-      `<strong>Price:</strong> $1000 - $5000/month\n` +
-      `• All Basic package benefits\n` +
-      `• Customized trading strategies and plans\n` +
-      `• Advanced risk management and portfolio optimization\n` +
-      `• Regular performance analysis and reporting\n\n` +
-      `<u>3. Premium Account Management</u>\n` +
-      `<strong>Price:</strong> $5000 - $10000/month\n` +
-      `• All Advanced package benefits\n` +
-      `• Personalized trading coach and dedicated manager\n` +
-      `• Advanced technical analysis and market research\n` +
-      `• High-net-worth account management\n\n`;
-
-    // Signal Provision Service
-    message +=
-      `<strong>📈 SIGNAL PROVISION</strong>\n` +
-      `<em>Accurate signals for informed trading decisions</em>\n\n` +
-      `<u>Forex Trading Signals Service</u>\n` +
-      `<strong>Price:</strong> $80/month\n` +
-      `• Accurate and timely trading signals\n` +
-      `• Expert analysis and market insights\n` +
-      `• Trade entry and exit strategies\n\n`;
-
-    // Payment Information
-    message +=
-      `<strong>💰 PAYMENT OPTIONS</strong>\n` +
-      `<em>Bank transfer is our only accepted payment method</em>\n\n` +
-      `<u>Bank Transfer:</u>\n` +
-      `<strong>Account Name:</strong> <code>Emmanuel Chidiebere</code>\n` +
-      `<strong>Account Number:</strong> <code>6162598082</code>\n` +
-      `<strong>Bank:</strong> <em>Fidelity Bank</em>\n\n` +
-      `<u>After payment:</u>\n` +
-      `<strong>Send proof to WhatsApp:</strong>\n` +
-      `<a href="https://wa.me/2349032085666">Click here to chat</a>\n\n` +
-      `<em>For more information, visit our website or contact support.</em>`;
-
-    await ctx.reply(message, { parse_mode: "HTML" });
-
-    // Show menu again if user is connected
-    if (user) {
-      await ctx.reply(`<strong>Need more information?</strong>`, {
-        parse_mode: "HTML",
-        ...Markup.inlineKeyboard([
-          [Markup.button.callback("💳 Payment Options", "payment_info")],
-          [Markup.button.callback("◀️ Back to Main Menu", "main_menu")],
-        ]).oneTime(),
-      });
-    }
-  } catch (error) {
-    console.error("Error in view_services action:", error);
-    await ctx.reply(
-      "An error occurred while fetching service information. Please try again later."
-    );
-  }
 });
 
 // Payment Information
 bot.action("payment_info", async (ctx) => {
   await ctx.reply(
-    `<strong>💰 PAYMENT OPTIONS</strong>\n\n` +
-    `<strong>Bank Transfer:</strong>\n` +
-    `Account Name: <code>Emmanuel Chidiebere</code>\n` +
-    `Account Number: <code>6162598082</code>\n` +
-    `Bank: <em>Fidelity Bank</em>\n\n` +
-    `<strong>After payment, send proof to WhatsApp:</strong>\n` +
+    `<strong>💰 PAYMENT OPTIONS</strong>\n` +
+    `<em>Bank transfer is our only accepted payment method</em>\n\n` +
+    `<u>Bank Transfer:</u>\n` +
+    `<strong>Account Name:</strong> <code>Emmanuel Chidiebere</code>\n` +
+    `<strong>Account Number:</strong> <code>6162598082</code>\n` +
+    `<strong>Bank:</strong> <em>Fidelity Bank</em>\n\n` +
+    `<u>After payment:</u>\n` +
+    `<strong>Send proof to WhatsApp:</strong>\n` +
     `<a href="https://wa.me/2349032085666">Click here to chat</a>\n\n` +
-    `<em>Contact support for other payment methods.</em>`,
+    `<em>For more information, contact support.</em>`,
     {
       parse_mode: "HTML",
       reply_markup: {
@@ -1607,23 +1572,47 @@ bot.action("main_menu", async (ctx) => {
   }
 });
 
-// Minimal inbound text logging to verify the bot receives updates
-bot.on("text", async (ctx, next) => {
+// Handle any text messages that aren't commands
+bot.on("text", async (ctx) => {
   try {
-    console.log("Incoming text:", {
-      from: ctx.from?.id,
-      chat: ctx.chat?.id,
-      text: ctx.message?.text,
-      type: ctx.chat?.type,
-    });
-  } catch { }
-  return next();
+    const userId = ctx.from.id;
+    const user = await User.findOne({ telegramId: userId });
+
+    // If user is not connected, guide them to connect
+    if (!user) {
+      await ctx.reply(
+        `👋 Hi ${ctx.from.first_name || "there"}!\n\n` +
+        `Welcome to SBM Forex Academy! 🚀\n\n` +
+        `It looks like you haven't connected your account yet.\n\n` +
+        `Let's get you started:`,
+        Markup.inlineKeyboard([
+          [Markup.button.callback("🎥 Watch Tutorial & Connect", "watch_tutorial")],
+          [Markup.button.callback("🔗 I Have Token - Connect Now", "connect_with_token")],
+          [Markup.button.callback("❓ Need Help?", "help")]
+        ])
+      );
+      return;
+    }
+
+    // If user is connected but sent random text, show helpful menu
+    await ctx.reply(
+      `👋 Hi ${user.firstName}!\n\n` +
+      `What would you like to do?`,
+      Markup.inlineKeyboard([
+        [Markup.button.callback("🛒 Browse Services", "browse_services")],
+        [Markup.button.callback("📊 My Account", "check_status")],
+        [Markup.button.callback("❓ Help", "help")]
+      ])
+    );
+  } catch (error) {
+    console.error("Error in text handler:", error);
+  }
 });
 
-// Shared services handler
-const servicesHandler = async (ctx) => {
+// View Services Details
+bot.action("view_services", async (ctx) => {
+  // Instead of trying to call the command directly, we'll recreate the functionality
   try {
-    console.log("/services handler invoked by:", ctx.from.id);
     const userId = ctx.from.id;
 
     // Check if user is connected
@@ -1645,23 +1634,146 @@ const servicesHandler = async (ctx) => {
         `Please <u>connect your account</u> using /connect to access personalized services.\n\n`;
     }
 
-    // Mentorship Packages
+    // Account Management Services (keeping this)
     message +=
-      `<strong>🎓 MENTORSHIP PACKAGES</strong>\n` +
-      `<em>Expert guidance to elevate your trading skills</em>\n\n` +
-      `<u>1. Standard Mentorship</u>\n` +
-      `<strong>Price:</strong> $210/month\n` +
-      `• Monthly access to expert trading insights and strategies\n` +
-      `• Personalized support and feedback\n` +
-      `• Exclusive trading community access\n` +
-      `• Regular market analysis and updates\n\n` +
-      `<u>2. VIP Mentorship Package</u>\n` +
-      `<strong>Price:</strong> $1000/month\n` +
-      `• All Standard Mentorship benefits\n` +
-      `• Physical teaching and training at our facility\n` +
-      `• Daily meals and accommodation (for out-of-town participants)\n` +
-      `• One-on-one personalized coaching\n` +
-      `• Priority access to expert analysis and signals\n\n`;
+      `<strong>💼 ACCOUNT MANAGEMENT</strong>\n` +
+      `<em>Professional management for consistent profits</em>\n\n` +
+      `<u>1. Basic Account Management</u>\n` +
+      `<strong>Price:</strong> $500/month\n` +
+      `• Professional account setup and configuration\n` +
+      `• Regular market analysis and trading signals\n` +
+      `• Basic risk management and position sizing\n\n` +
+      `<u>2. Advanced Account Management</u>\n` +
+      `<strong>Price:</strong> $1000 - $5000/month\n` +
+      `• All Basic package benefits\n` +
+      `• Customized trading strategies and plans\n` +
+      `• Advanced risk management and portfolio optimization\n` +
+      `• Regular performance analysis and reporting\n\n` +
+      `<u>3. Premium Account Management</u>\n` +
+      `<strong>Price:</strong> $5000 - $10000/month\n` +
+      `• All Advanced package benefits\n` +
+      `• Personalized trading coach and dedicated manager\n` +
+      `• Advanced technical analysis and market research\n` +
+      `• High-net-worth account management\n\n`;
+
+    // Signal Provision Service (keeping this)
+    message +=
+      `<strong>📈 SIGNAL PROVISION</strong>\n` +
+      `<em>Accurate signals for informed trading decisions</em>\n\n` +
+      `<u>Forex Trading Signals Service</u>\n` +
+      `<strong>Price:</strong> $80/month\n` +
+      `• Accurate and timely trading signals\n` +
+      `• Expert analysis and market insights\n` +
+      `• Trade entry and exit strategies\n\n`;
+
+    // Payment Information
+    message +=
+      `<strong>💰 PAYMENT OPTIONS</strong>\n` +
+      `<em>Bank transfer is our only accepted payment method</em>\n\n` +
+      `<u>Bank Transfer:</u>\n` +
+      `<strong>Account Name:</strong> <code>Emmanuel Chidiebere</code>\n` +
+      `<strong>Account Number:</strong> <code>6162598082</code>\n` +
+      `<strong>Bank:</strong> <em>Fidelity Bank</em>\n\n` +
+      `<u>After payment:</u>\n` +
+      `<strong>Send proof to WhatsApp:</strong>\n` +
+      `<a href="https://wa.me/2349032085666">Click here to chat</a>\n\n` +
+      `<em>For more information, visit our website or contact support.</em>`;
+
+    await ctx.reply(message, { parse_mode: "HTML" });
+
+    // Show menu again if user is connected
+    if (user) {
+      await ctx.reply(`<strong>Need more information?</strong>`, {
+        parse_mode: "HTML",
+        reply_markup: {
+          inline_keyboard: [
+            [{ text: "💳 Payment Options", callback_data: "payment_info" }],
+            [{ text: "◀️ Back to Main Menu", callback_data: "main_menu" }],
+          ],
+        },
+      });
+    }
+  } catch (error) {
+    console.error("Error in view_services action:", error);
+    await ctx.reply(
+      "An error occurred while fetching service information. Please try again later."
+    );
+  }
+});
+
+// Command to display services and payment information
+console.log("Registering /payment command");
+bot.command("payment", async (ctx) => {
+  try {
+    console.log("Payment command triggered by user:", ctx.from.id);
+    const userId = ctx.from.id;
+
+    // Check if user is connected
+    let user = await User.findOne({ telegramId: userId });
+    const admin = await Admin.findOne({ telegramId: userId });
+
+    // If not a regular user, check if it's an admin
+    if (!user && admin) {
+      user = admin;
+    }
+
+    let message =
+      `<strong>💰 PAYMENT OPTIONS</strong>\n` +
+      `<em>Bank transfer is our only accepted payment method</em>\n\n` +
+      `<u>Bank Transfer:</u>\n` +
+      `<strong>Account Name:</strong> <code>Emmanuel Chidiebere</code>\n` +
+      `<strong>Account Number:</strong> <code>6162598082</code>\n` +
+      `<strong>Bank:</strong> <em>Fidelity Bank</em>\n\n` +
+      `<u>After payment:</u>\n` +
+      `<strong>Send proof to WhatsApp:</strong>\n` +
+      `<a href="https://wa.me/2349032085666">Click here to chat</a>\n\n` +
+      `<em>For more information, contact support.</em>`;
+
+    console.log("Sending payment message to user:", userId);
+    await ctx.reply(message, { parse_mode: "HTML" });
+
+    // Show menu again if user is connected
+    if (user) {
+      await ctx.reply(`<strong>Need more information?</strong>`, {
+        parse_mode: "HTML",
+        reply_markup: {
+          inline_keyboard: [
+            [{ text: "◀️ Back to Main Menu", callback_data: "main_menu" }],
+          ],
+        },
+      });
+    }
+  } catch (error) {
+    console.error("Error in payment command:", error);
+    await ctx.reply(
+      "An error occurred while fetching payment information. Please try again later."
+    );
+  }
+});
+
+// Services command handler
+const servicesHandler = async (ctx) => {
+  try {
+    const userId = ctx.from.id;
+
+    // Check if user is connected
+    let user = await User.findOne({ telegramId: userId });
+    const admin = await Admin.findOne({ telegramId: userId });
+
+    // If not a regular user, check if it's an admin
+    if (!user && admin) {
+      user = admin;
+    }
+
+    let message =
+      `<strong>💳 SBM FOREX ACADEMY SERVICES</strong>\n` +
+      `<em>Comprehensive trading solutions for all skill levels</em>\n\n`;
+
+    if (!user) {
+      message +=
+        `⚠️ <strong>Account Not Connected</strong>\n` +
+        `Please <u>connect your account</u> using /connect to access personalized services.\n\n`;
+    }
 
     // Account Management Services
     message +=
@@ -1736,6 +1848,255 @@ const servicesHandler = async (ctx) => {
 console.log("Registering /services handlers");
 bot.command("services", servicesHandler);
 bot.hears(/^\/services(?:@\w+)?(?:\s|$)/i, servicesHandler);
+
+// Browse Services - streamlined service selection
+bot.action("browse_services", async (ctx) => {
+  try {
+    const userId = ctx.from.id;
+    const user = await User.findOne({ telegramId: userId });
+
+    if (!user) {
+      await ctx.reply("❌ Please connect your account first using /start");
+      return;
+    }
+
+    await ctx.reply(
+      `🛒 <b>CHOOSE YOUR SERVICE</b>\n\n` +
+      `Select the service you want to subscribe to:\n\n` +
+      `💼 <b>Account Management Services</b>\n` +
+      `📈 <b>Signal Services</b>\n\n` +
+      `<i>Click on any service to see details and pricing!</i>`,
+      {
+        parse_mode: "HTML",
+        ...Markup.inlineKeyboard([
+          [Markup.button.callback("💼 Account Management", "account_management_services")],
+          [Markup.button.callback("📈 Trading Signals", "signal_services")],
+          [Markup.button.callback("◀️ Back to Menu", "main_menu")]
+        ]).oneTime()
+      }
+    );
+  } catch (error) {
+    console.error("Error in browse_services:", error);
+    await ctx.reply("An error occurred. Please try again later.");
+  }
+});
+
+// Account Management Services
+bot.action("account_management_services", async (ctx) => {
+  try {
+    const userId = ctx.from.id;
+    const user = await User.findOne({ telegramId: userId });
+
+    if (!user) {
+      await ctx.reply("❌ Please connect your account first using /start");
+      return;
+    }
+
+    await ctx.reply(
+      `💼 <b>ACCOUNT MANAGEMENT SERVICES</b>\n\n` +
+      `Choose your preferred management level:\n\n` +
+      `🟢 <b>Basic Management</b>\n` +
+      `💰 <b>Price:</b> $500/month\n` +
+      `• Professional setup\n` +
+      `• Regular signals\n` +
+      `• Basic risk management\n\n` +
+      `🟡 <b>Advanced Management</b>\n` +
+      `💰 <b>Price:</b> $1000-$5000/month\n` +
+      `• All Basic benefits\n` +
+      `• Custom strategies\n` +
+      `• Advanced risk management\n\n` +
+      `🔴 <b>Premium Management</b>\n` +
+      `💰 <b>Price:</b> $5000-$10000/month\n` +
+      `• All Advanced benefits\n` +
+      `• Personal coach\n` +
+      `• High-net-worth management`,
+      {
+        parse_mode: "HTML",
+        ...Markup.inlineKeyboard([
+          [Markup.button.callback("🟢 Choose Basic ($500/month)", "select_service_basic")],
+          [Markup.button.callback("🟡 Choose Advanced ($1000-$5000/month)", "select_service_advanced")],
+          [Markup.button.callback("🔴 Choose Premium ($5000-$10000/month)", "select_service_premium")],
+          [Markup.button.callback("◀️ Back to Services", "browse_services")]
+        ]).oneTime()
+      }
+    );
+  } catch (error) {
+    console.error("Error in account_management_services:", error);
+    await ctx.reply("An error occurred. Please try again later.");
+  }
+});
+
+// Signal Services
+bot.action("signal_services", async (ctx) => {
+  try {
+    const userId = ctx.from.id;
+    const user = await User.findOne({ telegramId: userId });
+
+    if (!user) {
+      await ctx.reply("❌ Please connect your account first using /start");
+      return;
+    }
+
+    await ctx.reply(
+      `📈 <b>TRADING SIGNALS SERVICE</b>\n\n` +
+      `💰 <b>Price:</b> $80/month\n\n` +
+      `✅ <b>What you get:</b>\n` +
+      `• Accurate trading signals\n` +
+      `• Expert market analysis\n` +
+      `• Entry and exit strategies\n` +
+      `• Real-time notifications\n` +
+      `• 24/7 support\n\n` +
+      `<i>Perfect for traders who want professional guidance!</i>`,
+      {
+        parse_mode: "HTML",
+        ...Markup.inlineKeyboard([
+          [Markup.button.callback("📈 Subscribe to Signals ($80/month)", "select_service_signals")],
+          [Markup.button.callback("◀️ Back to Services", "browse_services")]
+        ]).oneTime()
+      }
+    );
+  } catch (error) {
+    console.error("Error in signal_services:", error);
+    await ctx.reply("An error occurred. Please try again later.");
+  }
+});
+
+// Service selection handlers
+bot.action("select_service_basic", async (ctx) => {
+  await showPaymentInstructions(ctx, "Basic Account Management", "$500/month");
+});
+
+bot.action("select_service_advanced", async (ctx) => {
+  await showPaymentInstructions(ctx, "Advanced Account Management", "$1000-$5000/month");
+});
+
+bot.action("select_service_premium", async (ctx) => {
+  await showPaymentInstructions(ctx, "Premium Account Management", "$5000-$10000/month");
+});
+
+bot.action("select_service_signals", async (ctx) => {
+  await showPaymentInstructions(ctx, "Trading Signals Service", "$80/month");
+});
+
+// Show payment instructions
+const showPaymentInstructions = async (ctx, serviceName, price) => {
+  try {
+    await ctx.reply(
+      `💳 <b>PAYMENT INSTRUCTIONS</b>\n\n` +
+      `🎯 <b>Service:</b> ${serviceName}\n` +
+      `💰 <b>Price:</b> ${price}\n\n` +
+      `📝 <b>How to Pay:</b>\n` +
+      `1. Transfer the amount to our bank account\n` +
+      `2. Take a screenshot of your payment receipt\n` +
+      `3. Send the receipt image to this bot\n` +
+      `4. We'll activate your service within 24 hours\n\n` +
+      `🏦 <b>Bank Details:</b>\n` +
+      `<strong>Account Name:</strong> Emmanuel Chidiebere\n` +
+      `<strong>Account Number:</strong> 6162598082\n` +
+      `<strong>Bank:</strong> Fidelity Bank\n\n` +
+      `<i>💡 After payment, just send your receipt as an image to this bot!</i>`,
+      {
+        parse_mode: "HTML",
+        ...Markup.inlineKeyboard([
+          [Markup.button.callback("✅ I've Made Payment - Send Receipt", "send_receipt")],
+          [Markup.button.callback("❓ Need Help?", "help")],
+          [Markup.button.callback("◀️ Back to Services", "browse_services")]
+        ]).oneTime()
+      }
+    );
+  } catch (error) {
+    console.error("Error in showPaymentInstructions:", error);
+    await ctx.reply("An error occurred. Please try again later.");
+  }
+};
+
+// Handle receipt sending
+bot.action("send_receipt", async (ctx) => {
+  await ctx.reply(
+    `📸 <b>SEND YOUR PAYMENT RECEIPT</b>\n\n` +
+    `Please send your payment receipt as an image.\n\n` +
+    `📝 <b>Make sure your receipt shows:</b>\n` +
+    `• Your name\n` +
+    `• Payment amount\n` +
+    `• Transaction reference\n` +
+    `• Bank details\n\n` +
+    `<i>Just send the image and we'll process it within 24 hours!</i>`,
+    { parse_mode: "HTML" }
+  );
+});
+
+// Handle receipt images - when users send receipt images
+bot.on('photo', async (ctx) => {
+  try {
+    const userId = ctx.from.id;
+    const user = await User.findOne({ telegramId: userId });
+
+    if (!user) {
+      await ctx.reply("❌ Please connect your account first using /start");
+      return;
+    }
+
+    // Get the largest photo size
+    const photo = ctx.message.photo[ctx.message.photo.length - 1];
+    const fileId = photo.file_id;
+
+    // Get admin info to send notification
+    const adminInfo = await getAdminInfo();
+
+    if (adminInfo.adminId) {
+      // Send receipt to admin with user details
+      await bot.telegram.sendPhoto(
+        adminInfo.adminId,
+        fileId,
+        {
+          caption: `📸 <b>PAYMENT RECEIPT RECEIVED</b>\n\n` +
+            `👤 <b>User:</b> ${user.firstName} ${user.lastName}\n` +
+            `📧 <b>Email:</b> ${user.email}\n` +
+            `🆔 <b>Telegram ID:</b> ${userId}\n` +
+            `📅 <b>Received:</b> ${new Date().toLocaleString()}\n\n` +
+            `💳 <b>To approve payment:</b>\n` +
+            `Use: <code>/togglepayment ${user.email}</code>\n\n` +
+            `⏰ <i>Please review and approve within 24 hours</i>`,
+          parse_mode: "HTML"
+        }
+      );
+
+      // Confirm to user that receipt was received
+      await ctx.reply(
+        `✅ <b>RECEIPT RECEIVED!</b>\n\n` +
+        `Thank you ${user.firstName}! We've received your payment receipt.\n\n` +
+        `📋 <b>What happens next:</b>\n` +
+        `• We'll review your receipt within 24 hours\n` +
+        `• You'll receive a confirmation when approved\n` +
+        `• Your service will be activated automatically\n\n` +
+        `📞 <b>Need help?</b> Contact support at:\n` +
+        `<a href="https://wa.me/2349032085666">WhatsApp Support</a>\n\n` +
+        `⏰ <i>You'll get notified as soon as your payment is processed!</i>`,
+        {
+          parse_mode: "HTML",
+          ...Markup.inlineKeyboard([
+            [Markup.button.callback("📊 Check My Status", "check_status")],
+            [Markup.button.callback("🏠 Main Menu", "main_menu")]
+          ]).oneTime()
+        }
+      );
+    } else {
+      // Fallback if no admin is set
+      await ctx.reply(
+        `✅ Receipt received! We'll process it soon.\n\n` +
+        `Please contact support if you don't hear back within 24 hours.`
+      );
+    }
+  } catch (error) {
+    console.error("Error handling receipt image:", error);
+    await ctx.reply(
+      "❌ Sorry, there was an error processing your receipt. Please try again or contact support."
+    );
+  }
+});
+
+// View Services Details - uses the same handler as the services command
+bot.action("view_services", servicesHandler);
 
 // Export the bot instance and helper functions
 export default bot;

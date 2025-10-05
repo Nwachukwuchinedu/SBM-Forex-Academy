@@ -34,16 +34,8 @@ const setupBotMenu = async () => {
         command: "howtojoin",
         description: "Get instructions on how to join the group",
       },
-      {
-        command: "services",
-        description: "View available services and payment information",
-      },
       { command: "help", description: "Show help message" },
       { command: "logout", description: "Logout from your account" },
-      // Admin-only commands (will be shown only to admins)
-      { command: "broadcast", description: "Broadcast message to all paid users" },
-      { command: "paidmessage", description: "Send paid-only message to group" },
-      { command: "togglepayment", description: "Toggle user payment status" },
     ]);
     console.log("✅ Telegram bot menu configured");
   } catch (error) {
