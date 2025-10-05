@@ -1,13 +1,8 @@
 import { useEffect, useState, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import {
-  DollarSign,
-  User,
-  FileText,
-  CreditCard,
-  Settings,
-  LogOut,
-} from "lucide-react";
+import { DollarSign, User, Settings, LogOut } from "lucide-react";
+import { Menu, X } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 
 const mentorshipPlans = [
   { name: "Standard Mentorship", price: 210, duration: "1 MONTH" },
@@ -35,11 +30,13 @@ const signalPlans = [
 const AuthServicesPage = () => {
   const [user, setUser] = useState<{ firstName: string } | null>(null);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const [consentOpen, setConsentOpen] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState<{ name: string } | null>(
     null
   );
   const avatarRef = useRef<HTMLDivElement>(null);
+  const drawerRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
 
   // Fetch user info for avatar
@@ -81,14 +78,22 @@ const AuthServicesPage = () => {
       ) {
         setMenuOpen(false);
       }
+      if (
+        mobileNavOpen &&
+        drawerRef.current &&
+        !drawerRef.current.contains(event.target as Node)
+      ) {
+        setMobileNavOpen(false);
+      }
     }
     if (menuOpen) {
       document.addEventListener("mousedown", handleClickOutside);
     } else {
       document.removeEventListener("mousedown", handleClickOutside);
     }
+    document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, [menuOpen]);
+  }, [menuOpen, mobileNavOpen]);
 
   // Consent Modal
   const ConsentModal = () =>
@@ -201,7 +206,12 @@ const AuthServicesPage = () => {
       <div className="flex-1 flex flex-col min-h-screen">
         {/* Responsive Navbar */}
         <header className="md:hidden flex items-center justify-between bg-dark-darker px-4 py-4 border-b border-gray-800 relative">
-          <span className="text-xl font-bold text-gold">SBM Forex</span>
+          <div className="flex items-center gap-3">
+            <button aria-label="Open menu" onClick={() => setMobileNavOpen(true)} className="p-2 text-gray-900">
+              <Menu />
+            </button>
+            <span className="text-xl font-bold text-gold">SBM Forex</span>
+          </div>
           {/* Avatar Circle */}
           <div ref={avatarRef} className="relative">
             <button
@@ -240,7 +250,42 @@ const AuthServicesPage = () => {
           </div>
         </header>
 
-        <main className="flex-1 p-4 md:p-10 bg-dark">
+        {/* Mobile Drawer */}
+        <AnimatePresence>
+          {mobileNavOpen && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.2 }}
+              className="md:hidden fixed inset-0 z-50 bg-black/50"
+            >
+              <motion.div
+                ref={drawerRef}
+                initial={{ x: -300 }}
+                animate={{ x: 0 }}
+                exit={{ x: -300 }}
+                transition={{ type: "tween", duration: 0.25 }}
+                className="absolute left-0 top-0 h-full w-72 max-w-[85%] bg-dark-darker border-r border-gray-800 shadow-2xl p-6"
+              >
+                <div className="flex items-center justify-between mb-6">
+                  <span className="text-xl font-bold text-gold">SBM Forex</span>
+                  <button aria-label="Close menu" onClick={() => setMobileNavOpen(false)}>
+                    <X />
+                  </button>
+                </div>
+                <nav className="space-y-2">
+                  <Link to="/dashboard" onClick={() => setMobileNavOpen(false)} className="block px-3 py-2 rounded text-gray-400 hover:text-gold hover:bg-white/5">Dashboard</Link>
+                  <Link to="/dashboard/service" onClick={() => setMobileNavOpen(false)} className="block px-3 py-2 rounded text-gray-400 hover:text-gold hover:bg-white/5">Services</Link>
+                  <Link to="/dashboard/account" onClick={() => setMobileNavOpen(false)} className="block px-3 py-2 rounded text-gray-400 hover:text-gold hover:bg-white/5">Account Setting</Link>
+                  <button onClick={() => { setMobileNavOpen(false); handleLogout(); }} className="block w-full text-left px-3 py-2 rounded text-red-600 hover:bg-white/5">Logout</button>
+                </nav>
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        <main className="flex-1 p-4 md:p-10 bg-dark bg-grid-pattern">
           {/* Header with Avatar for desktop */}
           <div className="flex items-center justify-between mb-8">
             <h1 className="text-2xl md:text-3xl font-bold text-gold">

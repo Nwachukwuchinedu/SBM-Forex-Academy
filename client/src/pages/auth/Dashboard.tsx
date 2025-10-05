@@ -1,28 +1,17 @@
 import { useEffect, useState, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import {
-  DollarSign,
-  User,
-  FileText,
-  CreditCard,
-  Settings,
-  LogOut,
-} from "lucide-react";
+import { DollarSign, User, Settings, LogOut } from "lucide-react";
+import { Menu, X } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 
-const paymentHistory = [
-  {
-    id: "455784274263",
-    date: "31 May 2025, 02:53:37pm",
-    amount: "$300.00",
-    status: "Pending",
-  },
-  // Add more rows as needed
-];
+// paymentHistory table is currently not rendered
 
 const DashboardPage = () => {
   const [user, setUser] = useState<{ firstName: string } | null>(null);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const avatarRef = useRef<HTMLDivElement>(null);
+  const drawerRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
 
   // Close menu when clicking outside
@@ -34,14 +23,22 @@ const DashboardPage = () => {
       ) {
         setMenuOpen(false);
       }
+      if (
+        mobileNavOpen &&
+        drawerRef.current &&
+        !drawerRef.current.contains(event.target as Node)
+      ) {
+        setMobileNavOpen(false);
+      }
     }
     if (menuOpen) {
       document.addEventListener("mousedown", handleClickOutside);
     } else {
       document.removeEventListener("mousedown", handleClickOutside);
     }
+    document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, [menuOpen]);
+  }, [menuOpen, mobileNavOpen]);
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -99,51 +96,52 @@ const DashboardPage = () => {
   }
 
   return (
-    <div className="min-h-screen flex bg-dark">
+    <div className="min-h-screen flex bg-dark bg-grid-pattern">
       {/* Sidebar */}
       <aside className="hidden md:flex flex-col w-64 bg-dark-darker border-r border-gray-800 py-8 px-4">
         <div className="mb-10">
           <span className="text-2xl font-bold text-gold">SBM Forex</span>
         </div>
-        <nav className="flex flex-col gap-4">
+        <nav className="flex flex-col gap-1">
           <Link
             to="/dashboard"
-            className="flex items-center gap-3 text-gold font-semibold"
+            className="flex items-center gap-3 px-3 py-2 rounded text-gold font-semibold bg-white/5"
           >
             <User className="h-5 w-5" /> Dashboard
           </Link>
-          {/* <Link
-            to="/dashboard/subscription"
-            className="flex items-center gap-3 text-gray-400 hover:text-gold transition"
-          >
-            <CreditCard className="h-5 w-5" /> My Subscription
-          </Link>
-          <Link
-            to="/dashboard/history"
-            className="flex items-center gap-3 text-gray-400 hover:text-gold transition"
-          >
-            <FileText className="h-5 w-5" /> Transaction History
-          </Link> */}
           <Link
             to="/dashboard/service"
-            className="flex items-center gap-3 text-gray-400 hover:text-gold transition"
+            className="flex items-center gap-3 px-3 py-2 rounded text-gray-400 hover:text-gold hover:bg-white/5 transition"
           >
             <DollarSign className="h-5 w-5" /> Services
           </Link>
           <Link
             to="/dashboard/account"
-            className="flex items-center gap-3 text-gray-400 hover:text-gold transition"
+            className="flex items-center gap-3 px-3 py-2 rounded text-gray-400 hover:text-gold hover:bg-white/5 transition"
           >
             <Settings className="h-5 w-5" /> Account Setting
           </Link>
         </nav>
+        <div className="mt-auto pt-8">
+          <button
+            onClick={handleLogout}
+            className="w-full flex items-center justify-center gap-2 px-3 py-2 rounded text-red-500 hover:bg-red-500/10 transition"
+          >
+            <LogOut className="h-5 w-5" /> Logout
+          </button>
+        </div>
       </aside>
 
       {/* Main Content */}
       <div className="flex-1 flex flex-col min-h-screen">
         {/* Responsive Navbar */}
         <header className="md:hidden flex items-center justify-between bg-dark-darker px-4 py-4 border-b border-gray-800 relative">
-          <span className="text-xl font-bold text-gold">SBM Forex</span>
+          <div className="flex items-center gap-3">
+            <button aria-label="Open menu" onClick={() => setMobileNavOpen(true)} className="p-2 text-gray-900">
+              <Menu />
+            </button>
+            <span className="text-xl font-bold text-gold">SBM Forex</span>
+          </div>
           {/* Avatar Circle */}
           <div ref={avatarRef} className="relative">
             <button
@@ -182,6 +180,41 @@ const DashboardPage = () => {
           </div>
         </header>
 
+        {/* Mobile Drawer */}
+        <AnimatePresence>
+          {mobileNavOpen && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.2 }}
+              className="md:hidden fixed inset-0 z-50 bg-black/50"
+            >
+              <motion.div
+                ref={drawerRef}
+                initial={{ x: -300 }}
+                animate={{ x: 0 }}
+                exit={{ x: -300 }}
+                transition={{ type: "tween", duration: 0.25 }}
+                className="absolute left-0 top-0 h-full w-72 max-w-[85%] bg-dark-darker border-r border-gray-800 shadow-2xl p-6"
+              >
+                <div className="flex items-center justify-between mb-6">
+                  <span className="text-xl font-bold text-gold">SBM Forex</span>
+                  <button aria-label="Close menu" onClick={() => setMobileNavOpen(false)}>
+                    <X />
+                  </button>
+                </div>
+                <nav className="space-y-2">
+                  <Link to="/dashboard" onClick={() => setMobileNavOpen(false)} className="block px-3 py-2 rounded text-gray-400 hover:text-gold hover:bg-white/5">Dashboard</Link>
+                  <Link to="/dashboard/service" onClick={() => setMobileNavOpen(false)} className="block px-3 py-2 rounded text-gray-400 hover:text-gold hover:bg-white/5">Services</Link>
+                  <Link to="/dashboard/account" onClick={() => setMobileNavOpen(false)} className="block px-3 py-2 rounded text-gray-400 hover:text-gold hover:bg-white/5">Account Setting</Link>
+                  <button onClick={() => { setMobileNavOpen(false); handleLogout(); }} className="block w-full text-left px-3 py-2 rounded text-red-600 hover:bg-white/5">Logout</button>
+                </nav>
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
         <main className="flex-1 p-4 md:p-10 bg-dark">
           {/* Header */}
           <div className="flex items-center justify-between mb-8">
@@ -219,79 +252,27 @@ const DashboardPage = () => {
 
           {/* Cards Section */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-12">
-            {/* Personal Info Card */}
             <div className="card-glass p-6 flex flex-col justify-between">
               <div>
                 <div className="flex items-center gap-3 mb-4">
                   <User className="h-6 w-6 text-gold" />
-                  <span className="font-semibold text-lg text-gray-900">
-                    Personal Info
-                  </span>
+                  <span className="font-semibold text-lg text-gray-900">Personal Info</span>
                 </div>
-                <p className="text-gray-400 mb-4">
-                  Edit your username and update your password on our user
-                  system.
-                </p>
+                <p className="text-gray-400 mb-4">Edit your username and update your password on our user system.</p>
               </div>
-              <Link to="/dashboard/account" className="btn btn-primary w-full">
-                Manage Your Account
-              </Link>
+              <Link to="/dashboard/account" className="btn btn-primary w-full">Manage Your Account</Link>
             </div>
-            {/* Pricing Card */}
+
             <div className="card-glass p-6 flex flex-col justify-between">
               <div>
                 <div className="flex items-center gap-3 mb-4">
                   <DollarSign className="h-6 w-6 text-gold" />
-                  <span className="font-semibold text-lg text-gray-900">
-                    Pricing
-                  </span>
+                  <span className="font-semibold text-lg text-gray-900">Pricing</span>
                 </div>
-                <p className="text-gray-400 mb-4">
-                  View our services and pricing for each service.
-                </p>
+                <p className="text-gray-400 mb-4">View our services and pricing for each service.</p>
               </div>
-              <Link to="/dashboard/service" className="btn btn-primary w-full">
-                Services
-              </Link>
+              <Link to="/dashboard/service" className="btn btn-primary w-full">Services</Link>
             </div>
-            {/* Billing History Card */}
-            {/* <div className="card-glass p-6 flex flex-col justify-between">
-              <div>
-                <div className="flex items-center gap-3 mb-4">
-                  <FileText className="h-6 w-6 text-gold" />
-                  <span className="font-semibold text-lg text-gray-900">
-                    Billing History
-                  </span>
-                </div>
-                <p className="text-gray-400 mb-4">
-                  Check out all your payment history. You can also save or print
-                  your invoice.
-                </p>
-              </div>
-              <Link to="/dashboard/history" className="btn btn-primary w-full">
-                Payment History
-              </Link>
-            </div> */}
-            {/* Subscriptions Card */}
-            {/* <div className="card-glass p-6 flex flex-col justify-between">
-              <div>
-                <div className="flex items-center gap-3 mb-4">
-                  <CreditCard className="h-6 w-6 text-gold" />
-                  <span className="font-semibold text-lg text-gray-900">
-                    Subscriptions
-                  </span>
-                </div>
-                <p className="text-gray-400 mb-4">
-                  Create and manage your subscriptions.
-                </p>
-              </div>
-              <Link
-                to="/dashboard/subscription"
-                className="btn btn-primary w-full"
-              >
-                Manage Subscription
-              </Link>
-            </div> */}
           </div>
 
           {/* Payment History Section */}
