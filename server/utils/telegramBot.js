@@ -50,11 +50,12 @@ bot.use(async (ctx, next) => {
     // Block ALL other commands in groups and redirect to private chat
     await ctx.reply(
       `👋 Hi ${ctx.from.first_name || "there"}!\n\n` +
-      `Commands should be used privately with the bot, not in the group.\n\n` +
-      `Please start a private conversation with me and use your commands there! 😊\n\n` +
-      `Click here to start: [Start Private Chat](https://t.me/${process.env.BOT_USERNAME || "SBMforexbot"
-      })\n\n` +
-      `Available commands: /start, /connect, /services, /help`,
+        `Commands should be used privately with the bot, not in the group.\n\n` +
+        `Please start a private conversation with me and use your commands there! 😊\n\n` +
+        `Click here to start: [Start Private Chat](https://t.me/${
+          process.env.BOT_USERNAME || "SBMforexbot"
+        })\n\n` +
+        `Available commands: /start, /connect, /services, /help`,
       { parse_mode: "Markdown" }
     );
     return; // Stop execution, don't call next()
@@ -203,8 +204,8 @@ const showMainMenu = async (ctx, user) => {
     // Admin menu with hierarchical navigation
     await ctx.reply(
       `<strong>🛡️ ADMIN DASHBOARD</strong>\n\n` +
-      `Welcome, <strong>${user.firstName || user.username}</strong>!\n\n` +
-      `<em>You have full administrative privileges.</em>`,
+        `Welcome, <strong>${user.firstName || user.username}</strong>!\n\n` +
+        `<em>You have full administrative privileges.</em>`,
       {
         parse_mode: "HTML",
         ...Markup.inlineKeyboard([
@@ -222,8 +223,8 @@ const showMainMenu = async (ctx, user) => {
 
     await ctx.reply(
       `<strong>👤 WELCOME ${user.firstName.toUpperCase()}!</strong>\n\n` +
-      `💰 <strong>Payment Status:</strong> ${paymentStatus}\n\n` +
-      `What would you like to do today?`,
+        `💰 <strong>Payment Status:</strong> ${paymentStatus}\n\n` +
+        `What would you like to do today?`,
       {
         parse_mode: "HTML",
         ...Markup.inlineKeyboard([
@@ -258,7 +259,7 @@ bot.command("howtojoin", async (ctx) => {
     if (!user && !isAdminUser) {
       await ctx.reply(
         "ℹ️ You are not yet connected to your SBM Forex Academy account.\n" +
-        "Please connect your account first using the /connect command."
+          "Please connect your account first using the /connect command."
       );
       return;
     }
@@ -268,18 +269,18 @@ bot.command("howtojoin", async (ctx) => {
       // Use HTML formatting instead of Markdown to avoid parsing issues
       await ctx.reply(
         `<b>📢 How to Join Our Telegram Group</b>\n\n` +
-        `To receive educational content and broadcasts, please follow these steps:\n\n` +
-        `1. Click on this link to join our group: ${adminInfo.groupInviteLink}\n` +
-        `2. After joining, you'll automatically start receiving educational content\n` +
-        `3. If you've already joined but still see membership issues, try leaving and rejoining the group\n\n` +
-        `Once you've joined the group, you'll be able to receive all broadcast messages and educational content.\n\n` +
-        `If you continue to experience issues, please contact our support team.`,
+          `To receive educational content and broadcasts, please follow these steps:\n\n` +
+          `1. Click on this link to join our group: ${adminInfo.groupInviteLink}\n` +
+          `2. After joining, you'll automatically start receiving educational content\n` +
+          `3. If you've already joined but still see membership issues, try leaving and rejoining the group\n\n` +
+          `Once you've joined the group, you'll be able to receive all broadcast messages and educational content.\n\n` +
+          `If you continue to experience issues, please contact our support team.`,
         { parse_mode: "HTML" }
       );
     } else {
       await ctx.reply(
         "<b>📢 Group Information</b>\n\n" +
-        "Our Telegram group information is not available yet. Please contact support for more details.",
+          "Our Telegram group information is not available yet. Please contact support for more details.",
         { parse_mode: "HTML" }
       );
     }
@@ -294,12 +295,12 @@ bot.command("howtojoin", async (ctx) => {
     try {
       await ctx.reply(
         "📢 How to Join Our Telegram Group\n\n" +
-        "To receive educational content and broadcasts, please follow these steps:\n\n" +
-        "1. Click on this link to join our group: Contact admin for the group link\n" +
-        "2. After joining, you'll automatically start receiving educational content\n" +
-        "3. If you've already joined but still see membership issues, try leaving and rejoining the group\n\n" +
-        "Once you've joined the group, you'll be able to receive all broadcast messages and educational content.\n\n" +
-        "If you continue to experience issues, please contact our support team."
+          "To receive educational content and broadcasts, please follow these steps:\n\n" +
+          "1. Click on this link to join our group: Contact admin for the group link\n" +
+          "2. After joining, you'll automatically start receiving educational content\n" +
+          "3. If you've already joined but still see membership issues, try leaving and rejoining the group\n\n" +
+          "Once you've joined the group, you'll be able to receive all broadcast messages and educational content.\n\n" +
+          "If you continue to experience issues, please contact our support team."
       );
     } catch (fallbackError) {
       console.error("Fallback error in howtojoin command:", fallbackError);
@@ -310,6 +311,31 @@ bot.command("howtojoin", async (ctx) => {
   }
 });
 
+// Command to connect user account
+bot.command("connect", async (ctx) => {
+  try {
+    const userId = ctx.from.id;
+
+    await ctx.reply(
+      `<b>🔗 Account Connection</b>\n\n` +
+        `To connect your SBM Forex Academy account with this Telegram bot:\n\n` +
+        `1. Visit our website: https://sbmforexacademy.com\n` +
+        `2. Log in to your SBM Forex Academy account\n` +
+        `3. Go to Account Settings\n` +
+        `4. Click "Generate Connection Token"\n` +
+        `5. Copy the generated token\n` +
+        `6. Send the token to this bot using the command: /token YOUR_TOKEN_HERE\n\n` +
+        `Once connected, you'll receive educational content from the group.`,
+      { parse_mode: "HTML" }
+    );
+  } catch (error) {
+    console.error("Error in connect command:", error);
+    await ctx.reply(
+      "An error occurred while providing connection instructions. Please try again later."
+    );
+  }
+});
+
 // Start command - Welcome message with role-based keyboard
 bot.start(async (ctx) => {
   try {
@@ -317,11 +343,12 @@ bot.start(async (ctx) => {
     if (ctx.chat.type === "group" || ctx.chat.type === "supergroup") {
       await ctx.reply(
         `👋 Hi ${ctx.from.first_name || "there"}!\n\n` +
-        `Welcome to SBM Forex Academy! 🚀\n\n` +
-        `To access your account and use all features, please start a private conversation with me.\n\n` +
-        `Click here to start: [Start Private Chat](https://t.me/${process.env.BOT_USERNAME || "SBMforexbot"
-        })\n\n` +
-        `Available commands: /connect, /services, /help`,
+          `Welcome to SBM Forex Academy! 🚀\n\n` +
+          `To access your account and use all features, please start a private conversation with me.\n\n` +
+          `Click here to start: [Start Private Chat](https://t.me/${
+            process.env.BOT_USERNAME || "SBMforexbot"
+          })\n\n` +
+          `Available commands: /connect, /services, /help`,
         { parse_mode: "Markdown" }
       );
       return;
@@ -354,22 +381,27 @@ bot.start(async (ctx) => {
     // New user - show quick start with video tutorial
     await ctx.reply(
       `🎥 <b>QUICK START GUIDE</b>\n\n` +
-      `Welcome to SBM Forex Academy! 🚀\n\n` +
-      `To get started, you need to connect your account. Watch this short video to learn how:\n\n` +
-      `📹 <b>How to Create Your Connection Token:</b>\n` +
-      `1. Go to our website and log in\n` +
-      `2. Navigate to Account Settings\n` +
-      `3. Click "Generate Connection Token"\n` +
-      `4. Copy the token\n` +
-      `5. Send it to this bot\n\n` +
-      `<i>💡 Tip: The video shows exactly where to find these options!</i>`,
+        `Welcome to <a href="https://sbmforexacademy.com">SBM Forex Academy</a>! 🚀\n\n` +
+        `To get started, you need to connect your account. Watch this short video to learn how:\n\n` +
+        `📹 <b>How to Create Your Connection Token:</b>\n` +
+        `1. Go to our <a href="https://sbmforexacademy.com">website</a> and log in\n` +
+        `2. Navigate to Account Settings\n` +
+        `3. Click "Generate Connection Token"\n` +
+        `4. Copy the token\n` +
+        `5. Send it to this bot\n\n` +
+        `<i>💡 Tip: The video shows exactly where to find these options!</i>`,
       {
         parse_mode: "HTML",
         ...Markup.inlineKeyboard([
           [Markup.button.callback("📹 Watch Tutorial Video", "watch_tutorial")],
-          [Markup.button.callback("🔗 I Have My Token - Connect Now", "connect_with_token")],
-          [Markup.button.callback("❓ Need Help?", "help")]
-        ]).oneTime()
+          [
+            Markup.button.callback(
+              "🔗 I Have My Token - Connect Now",
+              "connect_with_token"
+            ),
+          ],
+          [Markup.button.callback("❓ Need Help?", "help")],
+        ]).oneTime(),
       }
     );
   } catch (error) {
@@ -382,20 +414,26 @@ bot.start(async (ctx) => {
 bot.action("watch_tutorial", async (ctx) => {
   await ctx.reply(
     `📹 <b>TUTORIAL VIDEO</b>\n\n` +
-    `Here's a step-by-step video showing exactly how to create your connection token:\n\n` +
-    `🎬 <b>Video Link:</b> [Click here to watch](https://your-video-url.com)\n\n` +
-    `After watching the video, you'll know exactly how to:\n` +
-    `✅ Log into your account\n` +
-    `✅ Find Account Settings\n` +
-    `✅ Generate your token\n` +
-    `✅ Connect to this bot\n\n` +
-    `<i>💡 The video is only 2 minutes long and very easy to follow!</i>`,
+      `Here's a step-by-step video showing exactly how to create your connection token:\n\n` +
+      `🎬 <b>Video Link:</b> <a href="https://sbmforexacademy.com">Watch on our website</a>\n\n` +
+      `After watching the video, you'll know exactly how to:\n` +
+      `✅ Visit <a href="https://sbmforexacademy.com">SBM Forex Academy</a>\n` +
+      `✅ Log into your account\n` +
+      `✅ Find Account Settings\n` +
+      `✅ Generate your token\n` +
+      `✅ Connect to this bot\n\n` +
+      `<i>💡 The video is only 2 minutes long and very easy to follow!</i>`,
     {
       parse_mode: "HTML",
       ...Markup.inlineKeyboard([
-        [Markup.button.callback("🔗 I'm Ready - Connect Now", "connect_with_token")],
-        [Markup.button.callback("❓ Still Need Help?", "help")]
-      ]).oneTime()
+        [
+          Markup.button.callback(
+            "🔗 I'm Ready - Connect Now",
+            "connect_with_token"
+          ),
+        ],
+        [Markup.button.callback("❓ Still Need Help?", "help")],
+      ]).oneTime(),
     }
   );
 });
@@ -403,16 +441,16 @@ bot.action("watch_tutorial", async (ctx) => {
 bot.action("connect_with_token", async (ctx) => {
   await ctx.reply(
     `🔗 <b>CONNECT YOUR ACCOUNT</b>\n\n` +
-    `Perfect! Now let's connect your account.\n\n` +
-    `📝 <b>Send your token like this:</b>\n` +
-    `<code>/token YOUR_TOKEN_HERE</code>\n\n` +
-    `For example: <code>/token abc123xyz</code>\n\n` +
-    `Just copy your token from the website and send it to me!`,
+      `Perfect! Now let's connect your account.\n\n` +
+      `📝 <b>Send your token like this:</b>\n` +
+      `<code>/token YOUR_TOKEN_HERE</code>\n\n` +
+      `For example: <code>/token abc123xyz</code>\n\n` +
+      `Just copy your token from the website and send it to me!`,
     {
       parse_mode: "HTML",
       ...Markup.inlineKeyboard([
-        [Markup.button.callback("❓ Need Help?", "help")]
-      ]).oneTime()
+        [Markup.button.callback("❓ Need Help?", "help")],
+      ]).oneTime(),
     }
   );
 });
@@ -420,13 +458,14 @@ bot.action("connect_with_token", async (ctx) => {
 bot.action("connect_account", async (ctx) => {
   await ctx.reply(
     `<b>🔗 Account Connection</b>\n\n` +
-    `To connect your SBM Forex Academy account with this Telegram bot:\n\n` +
-    `1. Log in to your SBM Forex Academy account on the website\n` +
-    `2. Go to Account Settings\n` +
-    `3. Click "Generate Connection Token"\n` +
-    `4. Copy the generated token\n` +
-    `5. Send the token to this bot using the command: /token YOUR_TOKEN_HERE\n\n` +
-    `Once connected, you'll receive educational content from the group.`,
+      `To connect your SBM Forex Academy account with this Telegram bot:\n\n` +
+      `1. Visit our website: https://sbmforexacademy.com\n` +
+      `2. Log in to your SBM Forex Academy account\n` +
+      `3. Go to Account Settings\n` +
+      `4. Click "Generate Connection Token"\n` +
+      `5. Copy the generated token\n` +
+      `6. Send the token to this bot using the command: /token YOUR_TOKEN_HERE\n\n` +
+      `Once connected, you'll receive educational content from the group.`,
     { parse_mode: "HTML" }
   );
 });
@@ -460,10 +499,10 @@ bot.action("check_status", async (ctx) => {
       if (admin) {
         await ctx.reply(
           `<b>🛡️ Admin Status</b>\n\n` +
-          `Username: ${admin.username}\n` +
-          `Email: ${admin.email}\n` +
-          `<b>Role: ADMIN</b>\n\n` +
-          `You have full administrative privileges.`,
+            `Username: ${admin.username}\n` +
+            `Email: ${admin.email}\n` +
+            `<b>Role: ADMIN</b>\n\n` +
+            `You have full administrative privileges.`,
           { parse_mode: "HTML" }
         );
         await showMainMenu(ctx, admin);
@@ -476,7 +515,7 @@ bot.action("check_status", async (ctx) => {
     if (!user) {
       await ctx.reply(
         "ℹ️ You are not yet connected to your SBM Forex Academy account.\n" +
-        "Use /connect to link your account and receive educational content."
+          "Use /connect to link your account and receive educational content."
       );
       return;
     }
@@ -495,19 +534,19 @@ bot.action("check_status", async (ctx) => {
 
     await ctx.reply(
       `<b>📊 Payment Status</b>\n\n` +
-      `Name: ${user.firstName} ${user.lastName}\n` +
-      `Email: ${user.email}\n` +
-      `<b>Status: ${user.paymentStatus ? "ACTIVE" : "INACTIVE"}</b>` +
-      groupStatus +
-      "\n\n" +
-      (user.paymentStatus &&
+        `Name: ${user.firstName} ${user.lastName}\n` +
+        `Email: ${user.email}\n` +
+        `<b>Status: ${user.paymentStatus ? "ACTIVE" : "INACTIVE"}</b>` +
+        groupStatus +
+        "\n\n" +
+        (user.paymentStatus &&
         (groupStatus.includes("ACTIVE") || !adminInfo.groupInviteLink)
-        ? "✅ You have full access to educational content from the group."
-        : "❌ You currently don't have access to educational content. " +
-        (user.paymentStatus
-          ? "Please join our Telegram group to get access."
-          : "Contact admin for assistance.")) +
-      "\n",
+          ? "✅ You have full access to educational content from the group."
+          : "❌ You currently don't have access to educational content. " +
+            (user.paymentStatus
+              ? "Please join our Telegram group to get access."
+              : "Contact admin for assistance.")) +
+        "\n",
       { parse_mode: "HTML" }
     );
 
@@ -597,7 +636,7 @@ bot.action("logout", async (ctx) => {
     if (userResult || adminResult) {
       await ctx.reply(
         "✅ You have been successfully logged out. \n\n" +
-        "To reconnect, generate a new token from your account settings on the website.",
+          "To reconnect, generate a new token from your account settings on the website.",
         Markup.inlineKeyboard([
           Markup.button.callback("Connect Account", "connect_account"),
           Markup.button.callback("Help", "help"),
@@ -606,7 +645,7 @@ bot.action("logout", async (ctx) => {
     } else {
       await ctx.reply(
         "ℹ️ You are not connected to any account. \n\n" +
-        "Use /connect to link your account.",
+          "Use /connect to link your account.",
         Markup.inlineKeyboard([
           Markup.button.callback("Connect Account", "connect_account"),
           Markup.button.callback("Help", "help"),
@@ -628,7 +667,8 @@ bot.action("manage_users", async (ctx) => {
 
   if (!isAdminUser) {
     await ctx.reply(
-      `❌ Sorry ${ctx.from.first_name || "there"
+      `❌ Sorry ${
+        ctx.from.first_name || "there"
       }, you don't have permission to perform this action. This feature is only available to administrators.`
     );
     // Show regular user menu
@@ -657,14 +697,16 @@ bot.action("manage_users", async (ctx) => {
 
     message += `<b>✅ Paid Users (${paidUsers.length}):</b>\n`;
     paidUsers.forEach((user) => {
-      message += `• ${user.firstName} ${user.lastName} (${user.email}) ${user.telegramId ? "(Connected)" : "(Not Connected)"
-        }\n`;
+      message += `• ${user.firstName} ${user.lastName} (${user.email}) ${
+        user.telegramId ? "(Connected)" : "(Not Connected)"
+      }\n`;
     });
 
     message += `\n<b>❌ Not Paid Users (${unpaidUsers.length}):</b>\n`;
     unpaidUsers.forEach((user) => {
-      message += `• ${user.firstName} ${user.lastName} (${user.email}) ${user.telegramId ? "(Connected)" : "(Not Connected)"
-        }\n`;
+      message += `• ${user.firstName} ${user.lastName} (${user.email}) ${
+        user.telegramId ? "(Connected)" : "(Not Connected)"
+      }\n`;
     });
 
     await ctx.reply(message, { parse_mode: "HTML" });
@@ -688,7 +730,8 @@ bot.action("broadcast", async (ctx) => {
 
   if (!isAdminUser) {
     await ctx.reply(
-      `❌ Sorry ${ctx.from.first_name || "there"
+      `❌ Sorry ${
+        ctx.from.first_name || "there"
       }, you don't have permission to perform this action. This feature is only available to administrators.`
     );
     // Show regular user menu
@@ -702,8 +745,8 @@ bot.action("broadcast", async (ctx) => {
 
   await ctx.reply(
     "<b>📢 Broadcast Message</b>\n\n" +
-    "To broadcast a message to all paying users, use the command:\n" +
-    "/broadcast Your message here",
+      "To broadcast a message to all paying users, use the command:\n" +
+      "/broadcast Your message here",
     { parse_mode: "HTML" }
   );
 });
@@ -714,7 +757,8 @@ bot.action("toggle_payment", async (ctx) => {
 
   if (!isAdminUser) {
     await ctx.reply(
-      `❌ Sorry ${ctx.from.first_name || "there"
+      `❌ Sorry ${
+        ctx.from.first_name || "there"
       }, you don't have permission to perform this action. This feature is only available to administrators.`
     );
     // Show regular user menu
@@ -728,8 +772,8 @@ bot.action("toggle_payment", async (ctx) => {
 
   await ctx.reply(
     "<b>🔄 Toggle Payment Status</b>\n\n" +
-    "To toggle a user's payment status, use the command:\n" +
-    "/togglepayment [user_email]",
+      "To toggle a user's payment status, use the command:\n" +
+      "/togglepayment [user_email]",
     { parse_mode: "HTML" }
   );
 });
@@ -741,13 +785,13 @@ bot.command("connect", async (ctx) => {
 
     await ctx.reply(
       `<b>🔗 Account Connection</b>\n\n` +
-      `To connect your SBM Forex Academy account with this Telegram bot:\n\n` +
-      `1. Log in to your SBM Forex Academy account on the website\n` +
-      `2. Go to Account Settings\n` +
-      `3. Click "Generate Connection Token"\n` +
-      `4. Copy the generated token\n` +
-      `5. Send the token to this bot using the command: /token YOUR_TOKEN_HERE\n\n` +
-      `Once connected, you'll receive educational content from the group.`,
+        `To connect your SBM Forex Academy account with this Telegram bot:\n\n` +
+        `1. Log in to your SBM Forex Academy account on the website\n` +
+        `2. Go to Account Settings\n` +
+        `3. Click "Generate Connection Token"\n` +
+        `4. Copy the generated token\n` +
+        `5. Send the token to this bot using the command: /token YOUR_TOKEN_HERE\n\n` +
+        `Once connected, you'll receive educational content from the group.`,
       { parse_mode: "HTML" }
     );
   } catch (error) {
@@ -767,8 +811,8 @@ bot.command("token", async (ctx) => {
     if (args.length < 2) {
       await ctx.reply(
         "❌ Please provide a connection token.\n\n" +
-        "Usage: /token YOUR_TOKEN_HERE\n\n" +
-        "Generate a token from your account settings on the website."
+          "Usage: /token YOUR_TOKEN_HERE\n\n" +
+          "Generate a token from your account settings on the website."
       );
       return;
     }
@@ -782,7 +826,7 @@ bot.command("token", async (ctx) => {
     if (existingUser || existingAdmin) {
       await ctx.reply(
         "❌ This Telegram account is already connected to an account.\n\n" +
-        "Please logout first using the /logout command before connecting a new account."
+          "Please logout first using the /logout command before connecting a new account."
       );
       return;
     }
@@ -790,7 +834,8 @@ bot.command("token", async (ctx) => {
     // Make API call to validate the token and connect the account
     try {
       const response = await axios.post(
-        `${process.env.API_BASE_URL || "http://localhost:5000"
+        `${
+          process.env.API_BASE_URL || "http://localhost:5000"
         }/api/telegram-validation/validate-token`,
         {
           telegramId: userId.toString(),
@@ -813,16 +858,17 @@ bot.command("token", async (ctx) => {
           if (!adminVerification.isValid) {
             await ctx.reply(
               `<b>❌ Admin Verification Failed</b>\n\n` +
-              `${adminVerification.message}\n\n` +
-              `Please ensure you've set your Telegram ID in the admin dashboard and try again.`
+                `${adminVerification.message}\n\n` +
+                `Please ensure you've set your Telegram ID in the admin dashboard and try again.`
             );
             return;
           }
 
           await ctx.reply(
             "<b>✅ Admin Connection Successful</b>\n\n" +
-            "Welcome Admin! Your Telegram account is now connected.\n\n" +
-            "You have full administrative privileges."
+              "Welcome Admin! Your Telegram account is now connected.\n\n" +
+              "You have full administrative privileges.",
+            { parse_mode: "HTML" }
           );
 
           // Show admin menu
@@ -847,16 +893,17 @@ bot.command("token", async (ctx) => {
 
           await ctx.reply(
             "<b>✅ Connection Successful</b>\n\n" +
-            "Welcome " +
-            result.data.firstName +
-            "! Your Telegram account is now connected.\n\n" +
-            "<b>Payment Status: " +
-            (result.data.paymentStatus ? "ACTIVE" : "INACTIVE") +
-            "</b>\n" +
-            (result.data.paymentStatus
-              ? "You will now receive educational content from the group (if you're a group member)."
-              : "You will not receive educational content until your payment status is active.") +
-            groupMessage
+              "Welcome " +
+              result.data.firstName +
+              "! Your Telegram account is now connected.\n\n" +
+              "<b>Payment Status: " +
+              (result.data.paymentStatus ? "ACTIVE" : "INACTIVE") +
+              "</b>\n" +
+              (result.data.paymentStatus
+                ? "You will now receive educational content from the group (if you're a group member)."
+                : "You will not receive educational content until your payment status is active.") +
+              groupMessage,
+            { parse_mode: "HTML" }
           );
 
           // Show the appropriate menu based on user role
@@ -868,16 +915,16 @@ bot.command("token", async (ctx) => {
       } else {
         await ctx.reply(
           "<b>❌ Connection Failed</b>\n\n" +
-          result.message +
-          "\n\n" +
-          "Please generate a new token and try again."
+            result.message +
+            "\n\n" +
+            "Please generate a new token and try again."
         );
       }
     } catch (apiError) {
       console.error("Error calling validation API:", apiError);
       await ctx.reply(
         "<b>❌ Connection Failed</b>\n\n" +
-        "An error occurred while validating your token. Please try again later."
+          "An error occurred while validating your token. Please try again later."
       );
     }
   } catch (error) {
@@ -910,12 +957,12 @@ bot.command("logout", async (ctx) => {
     if (userResult || adminResult) {
       await ctx.reply(
         "✅ You have been successfully logged out. \n\n" +
-        "To reconnect, generate a new token from your account settings on the website."
+          "To reconnect, generate a new token from your account settings on the website."
       );
     } else {
       await ctx.reply(
         "ℹ️ You are not connected to any account. \n\n" +
-        "Use /connect to link your account."
+          "Use /connect to link your account."
       );
     }
   } catch (error) {
@@ -997,7 +1044,8 @@ const isAdminMiddleware = async (ctx, next) => {
     }
 
     await ctx.reply(
-      `❌ Sorry ${ctx.from.first_name || "there"
+      `❌ Sorry ${
+        ctx.from.first_name || "there"
       }, you don't have permission to perform this action. Admin access required.`
     );
   } catch (error) {
@@ -1037,15 +1085,15 @@ bot.command("togglepayment", isAdminMiddleware, async (ctx) => {
 
     await ctx.reply(
       "<b>✅ Successfully updated payment status for " +
-      user.firstName +
-      " " +
-      user.lastName +
-      " (" +
-      user.email +
-      ")</b>\n" +
-      "<b>New status: " +
-      (user.paymentStatus ? "Paid" : "Not Paid") +
-      "</b>",
+        user.firstName +
+        " " +
+        user.lastName +
+        " (" +
+        user.email +
+        ")</b>\n" +
+        "<b>New status: " +
+        (user.paymentStatus ? "Paid" : "Not Paid") +
+        "</b>",
       { parse_mode: "HTML" }
     );
 
@@ -1055,12 +1103,14 @@ bot.command("togglepayment", isAdminMiddleware, async (ctx) => {
         await bot.telegram.sendMessage(
           user.telegramId,
           `<b>🔔 Payment Status Update</b>\n\n` +
-          `Your access status has been changed to <b>${user.paymentStatus ? "ACTIVE" : "INACTIVE"
-          }</b>\n` +
-          `You are now ${user.paymentStatus
-            ? "able to receive educational content"
-            : "no longer able to receive educational content"
-          } from the group.`,
+            `Your access status has been changed to <b>${
+              user.paymentStatus ? "ACTIVE" : "INACTIVE"
+            }</b>\n` +
+            `You are now ${
+              user.paymentStatus
+                ? "able to receive educational content"
+                : "no longer able to receive educational content"
+            } from the group.`,
           { parse_mode: "HTML" }
         );
       } catch (error) {
@@ -1154,9 +1204,9 @@ bot.command("broadcast", isAdminMiddleware, async (ctx) => {
             await bot.telegram.sendMessage(
               user.telegramId,
               `<b>📢 Broadcast Notice</b>\n\n` +
-              `We tried to send you a broadcast message, but you're not currently a member of our Telegram group.\n\n` +
-              `Please join our group to receive educational content and broadcasts. After joining, you'll start receiving messages again.\n\n` +
-              `Use /howtojoin to get instructions on how to join our group.`,
+                `We tried to send you a broadcast message, but you're not currently a member of our Telegram group.\n\n` +
+                `Please join our group to receive educational content and broadcasts. After joining, you'll start receiving messages again.\n\n` +
+                `Use /howtojoin to get instructions on how to join our group.`,
               { parse_mode: "HTML" }
             );
           } catch (notifyError) {
@@ -1187,16 +1237,16 @@ bot.command("broadcast", isAdminMiddleware, async (ctx) => {
     await bot.telegram.sendMessage(
       ctx.from.id,
       `<b>📬 Broadcast Summary</b>\n\n` +
-      `Total paying users: ${payingUsers.length}\n` +
-      `Successfully delivered: ${successCount}\n` +
-      `Not in group: ${notInGroupCount}\n` +
-      `Failed deliveries: ${failureCount}\n\n` +
-      (notInGroupCount > 0
-        ? `${notInGroupCount} users were notified that they need to join the group to receive broadcasts.\n\n`
-        : "") +
-      (failureCount > 0
-        ? "Some users may have blocked the bot or deleted their account."
-        : ""),
+        `Total paying users: ${payingUsers.length}\n` +
+        `Successfully delivered: ${successCount}\n` +
+        `Not in group: ${notInGroupCount}\n` +
+        `Failed deliveries: ${failureCount}\n\n` +
+        (notInGroupCount > 0
+          ? `${notInGroupCount} users were notified that they need to join the group to receive broadcasts.\n\n`
+          : "") +
+        (failureCount > 0
+          ? "Some users may have blocked the bot or deleted their account."
+          : ""),
       { parse_mode: "HTML" }
     );
   } catch (error) {
@@ -1225,7 +1275,7 @@ bot.command("paidmessage", isAdminMiddleware, async (ctx) => {
       await bot.telegram.sendMessage(
         ctx.from.id,
         "❌ Please provide a message. Usage: /paidmessage [your message]\n\n" +
-        "This message will only be visible to paid users in the group."
+          "This message will only be visible to paid users in the group."
       );
       return;
     }
@@ -1316,11 +1366,11 @@ ${message}
     await bot.telegram.sendMessage(
       ctx.from.id,
       `<b>💎 Paid Message Summary</b>\n\n` +
-      `Message sent to paid users only\n` +
-      `Total paying users: ${payingUsers.length}\n` +
-      `Successfully delivered: ${successCount}\n` +
-      `Not in group: ${notInGroupCount}\n` +
-      `Failed deliveries: ${failureCount}`,
+        `Message sent to paid users only\n` +
+        `Total paying users: ${payingUsers.length}\n` +
+        `Successfully delivered: ${successCount}\n` +
+        `Not in group: ${notInGroupCount}\n` +
+        `Failed deliveries: ${failureCount}`,
       { parse_mode: "HTML" }
     );
   } catch (error) {
@@ -1402,9 +1452,9 @@ bot.on("message", async (ctx) => {
                 await bot.telegram.sendMessage(
                   user.telegramId,
                   `<b>📢 Message Forwarding Notice</b>\n\n` +
-                  `We tried to forward a group message to you, but you're not currently a member of our Telegram group.\n\n` +
-                  `Please join our group to receive educational content. After joining, you'll start receiving messages again.\n\n` +
-                  `Use /howtojoin to get instructions on how to join our group.`,
+                    `We tried to forward a group message to you, but you're not currently a member of our Telegram group.\n\n` +
+                    `Please join our group to receive educational content. After joining, you'll start receiving messages again.\n\n` +
+                    `Use /howtojoin to get instructions on how to join our group.`,
                   { parse_mode: "HTML" }
                 );
               } catch (notifyError) {
@@ -1433,16 +1483,16 @@ bot.on("message", async (ctx) => {
       try {
         await ctx.reply(
           `<b>📬 Message Distribution Summary</b>\n\n` +
-          `Total paying users: ${payingUsers.length}\n` +
-          `Successfully delivered: ${successCount}\n` +
-          `Not in group: ${notInGroupCount}\n` +
-          `Failed deliveries: ${failureCount}\n\n` +
-          (notInGroupCount > 0
-            ? `${notInGroupCount} users were notified that they need to join the group to receive messages.\n\n`
-            : "") +
-          (failureCount > 0
-            ? "Some users may have blocked the bot or deleted their account."
-            : ""),
+            `Total paying users: ${payingUsers.length}\n` +
+            `Successfully delivered: ${successCount}\n` +
+            `Not in group: ${notInGroupCount}\n` +
+            `Failed deliveries: ${failureCount}\n\n` +
+            (notInGroupCount > 0
+              ? `${notInGroupCount} users were notified that they need to join the group to receive messages.\n\n`
+              : "") +
+            (failureCount > 0
+              ? "Some users may have blocked the bot or deleted their account."
+              : ""),
           { parse_mode: "HTML" }
         );
       } catch (error) {
@@ -1461,7 +1511,8 @@ bot.action("user_management", async (ctx) => {
 
   if (!isAdminUser) {
     await ctx.reply(
-      `❌ Sorry ${ctx.from.first_name || "there"
+      `❌ Sorry ${
+        ctx.from.first_name || "there"
       }, you don't have permission to perform this action. This feature is only available to administrators.`
     );
     return;
@@ -1469,7 +1520,7 @@ bot.action("user_management", async (ctx) => {
 
   await ctx.reply(
     `<strong>👥 USER MANAGEMENT</strong>\n\n` +
-    `Manage user accounts and permissions.`,
+      `Manage user accounts and permissions.`,
     {
       parse_mode: "HTML",
       ...Markup.inlineKeyboard([
@@ -1488,7 +1539,8 @@ bot.action("communications", async (ctx) => {
 
   if (!isAdminUser) {
     await ctx.reply(
-      `❌ Sorry ${ctx.from.first_name || "there"
+      `❌ Sorry ${
+        ctx.from.first_name || "there"
       }, you don't have permission to perform this action. This feature is only available to administrators.`
     );
     return;
@@ -1496,7 +1548,7 @@ bot.action("communications", async (ctx) => {
 
   await ctx.reply(
     `<strong>📢 COMMUNICATIONS</strong>\n\n` +
-    `Send messages and manage communications.`,
+      `Send messages and manage communications.`,
     {
       parse_mode: "HTML",
       ...Markup.inlineKeyboard([
@@ -1512,7 +1564,7 @@ bot.action("communications", async (ctx) => {
 bot.action("services_info", async (ctx) => {
   await ctx.reply(
     `<strong>💳 SERVICES & PAYMENTS</strong>\n\n` +
-    `View available services and payment options.`,
+      `View available services and payment options.`,
     {
       parse_mode: "HTML",
       reply_markup: {
@@ -1530,15 +1582,15 @@ bot.action("services_info", async (ctx) => {
 bot.action("payment_info", async (ctx) => {
   await ctx.reply(
     `<strong>💰 PAYMENT OPTIONS</strong>\n` +
-    `<em>Bank transfer is our only accepted payment method</em>\n\n` +
-    `<u>Bank Transfer:</u>\n` +
-    `<strong>Account Name:</strong> <code>Emmanuel Chidiebere</code>\n` +
-    `<strong>Account Number:</strong> <code>6162598082</code>\n` +
-    `<strong>Bank:</strong> <em>Fidelity Bank</em>\n\n` +
-    `<u>After payment:</u>\n` +
-    `<strong>Send proof to WhatsApp:</strong>\n` +
-    `<a href="https://wa.me/2349032085666">Click here to chat</a>\n\n` +
-    `<em>For more information, contact support.</em>`,
+      `<em>Bank transfer is our only accepted payment method</em>\n\n` +
+      `<u>Bank Transfer:</u>\n` +
+      `<strong>Account Name:</strong> <code>Emmanuel Chidiebere</code>\n` +
+      `<strong>Account Number:</strong> <code>6162598082</code>\n` +
+      `<strong>Bank:</strong> <em>Fidelity Bank</em>\n\n` +
+      `<u>After payment:</u>\n` +
+      `<strong>Send proof to WhatsApp:</strong>\n` +
+      `<a href="https://wa.me/2349032085666">Click here to chat</a>\n\n` +
+      `<em>For more information, contact support.</em>`,
     {
       parse_mode: "HTML",
       reply_markup: {
@@ -1582,13 +1634,23 @@ bot.on("text", async (ctx) => {
     if (!user) {
       await ctx.reply(
         `👋 Hi ${ctx.from.first_name || "there"}!\n\n` +
-        `Welcome to SBM Forex Academy! 🚀\n\n` +
-        `It looks like you haven't connected your account yet.\n\n` +
-        `Let's get you started:`,
+          `Welcome to SBM Forex Academy! 🚀\n\n` +
+          `It looks like you haven't connected your account yet.\n\n` +
+          `Let's get you started:`,
         Markup.inlineKeyboard([
-          [Markup.button.callback("🎥 Watch Tutorial & Connect", "watch_tutorial")],
-          [Markup.button.callback("🔗 I Have Token - Connect Now", "connect_with_token")],
-          [Markup.button.callback("❓ Need Help?", "help")]
+          [
+            Markup.button.callback(
+              "🎥 Watch Tutorial & Connect",
+              "watch_tutorial"
+            ),
+          ],
+          [
+            Markup.button.callback(
+              "🔗 I Have Token - Connect Now",
+              "connect_with_token"
+            ),
+          ],
+          [Markup.button.callback("❓ Need Help?", "help")],
         ])
       );
       return;
@@ -1596,12 +1658,11 @@ bot.on("text", async (ctx) => {
 
     // If user is connected but sent random text, show helpful menu
     await ctx.reply(
-      `👋 Hi ${user.firstName}!\n\n` +
-      `What would you like to do?`,
+      `👋 Hi ${user.firstName}!\n\n` + `What would you like to do?`,
       Markup.inlineKeyboard([
         [Markup.button.callback("🛒 Browse Services", "browse_services")],
         [Markup.button.callback("📊 My Account", "check_status")],
-        [Markup.button.callback("❓ Help", "help")]
+        [Markup.button.callback("❓ Help", "help")],
       ])
     );
   } catch (error) {
@@ -1840,7 +1901,7 @@ const servicesHandler = async (ctx) => {
       await ctx.reply(
         "An error occurred while fetching service information. Please try again later."
       );
-    } catch { }
+    } catch {}
   }
 };
 
@@ -1862,17 +1923,22 @@ bot.action("browse_services", async (ctx) => {
 
     await ctx.reply(
       `🛒 <b>CHOOSE YOUR SERVICE</b>\n\n` +
-      `Select the service you want to subscribe to:\n\n` +
-      `💼 <b>Account Management Services</b>\n` +
-      `📈 <b>Signal Services</b>\n\n` +
-      `<i>Click on any service to see details and pricing!</i>`,
+        `Select the service you want to subscribe to:\n\n` +
+        `💼 <b>Account Management Services</b>\n` +
+        `📈 <b>Signal Services</b>\n\n` +
+        `<i>Click on any service to see details and pricing!</i>`,
       {
         parse_mode: "HTML",
         ...Markup.inlineKeyboard([
-          [Markup.button.callback("💼 Account Management", "account_management_services")],
+          [
+            Markup.button.callback(
+              "💼 Account Management",
+              "account_management_services"
+            ),
+          ],
           [Markup.button.callback("📈 Trading Signals", "signal_services")],
-          [Markup.button.callback("◀️ Back to Menu", "main_menu")]
-        ]).oneTime()
+          [Markup.button.callback("◀️ Back to Menu", "main_menu")],
+        ]).oneTime(),
       }
     );
   } catch (error) {
@@ -1894,30 +1960,45 @@ bot.action("account_management_services", async (ctx) => {
 
     await ctx.reply(
       `💼 <b>ACCOUNT MANAGEMENT SERVICES</b>\n\n` +
-      `Choose your preferred management level:\n\n` +
-      `🟢 <b>Basic Management</b>\n` +
-      `💰 <b>Price:</b> $500/month\n` +
-      `• Professional setup\n` +
-      `• Regular signals\n` +
-      `• Basic risk management\n\n` +
-      `🟡 <b>Advanced Management</b>\n` +
-      `💰 <b>Price:</b> $1000-$5000/month\n` +
-      `• All Basic benefits\n` +
-      `• Custom strategies\n` +
-      `• Advanced risk management\n\n` +
-      `🔴 <b>Premium Management</b>\n` +
-      `💰 <b>Price:</b> $5000-$10000/month\n` +
-      `• All Advanced benefits\n` +
-      `• Personal coach\n` +
-      `• High-net-worth management`,
+        `Choose your preferred management level:\n\n` +
+        `🟢 <b>Basic Management</b>\n` +
+        `💰 <b>Price:</b> $500/month\n` +
+        `• Professional setup\n` +
+        `• Regular signals\n` +
+        `• Basic risk management\n\n` +
+        `🟡 <b>Advanced Management</b>\n` +
+        `💰 <b>Price:</b> $1000-$5000/month\n` +
+        `• All Basic benefits\n` +
+        `• Custom strategies\n` +
+        `• Advanced risk management\n\n` +
+        `🔴 <b>Premium Management</b>\n` +
+        `💰 <b>Price:</b> $5000-$10000/month\n` +
+        `• All Advanced benefits\n` +
+        `• Personal coach\n` +
+        `• High-net-worth management`,
       {
         parse_mode: "HTML",
         ...Markup.inlineKeyboard([
-          [Markup.button.callback("🟢 Choose Basic ($500/month)", "select_service_basic")],
-          [Markup.button.callback("🟡 Choose Advanced ($1000-$5000/month)", "select_service_advanced")],
-          [Markup.button.callback("🔴 Choose Premium ($5000-$10000/month)", "select_service_premium")],
-          [Markup.button.callback("◀️ Back to Services", "browse_services")]
-        ]).oneTime()
+          [
+            Markup.button.callback(
+              "🟢 Choose Basic ($500/month)",
+              "select_service_basic"
+            ),
+          ],
+          [
+            Markup.button.callback(
+              "🟡 Choose Advanced ($1000-$5000/month)",
+              "select_service_advanced"
+            ),
+          ],
+          [
+            Markup.button.callback(
+              "🔴 Choose Premium ($5000-$10000/month)",
+              "select_service_premium"
+            ),
+          ],
+          [Markup.button.callback("◀️ Back to Services", "browse_services")],
+        ]).oneTime(),
       }
     );
   } catch (error) {
@@ -1939,20 +2020,25 @@ bot.action("signal_services", async (ctx) => {
 
     await ctx.reply(
       `📈 <b>TRADING SIGNALS SERVICE</b>\n\n` +
-      `💰 <b>Price:</b> $80/month\n\n` +
-      `✅ <b>What you get:</b>\n` +
-      `• Accurate trading signals\n` +
-      `• Expert market analysis\n` +
-      `• Entry and exit strategies\n` +
-      `• Real-time notifications\n` +
-      `• 24/7 support\n\n` +
-      `<i>Perfect for traders who want professional guidance!</i>`,
+        `💰 <b>Price:</b> $80/month\n\n` +
+        `✅ <b>What you get:</b>\n` +
+        `• Accurate trading signals\n` +
+        `• Expert market analysis\n` +
+        `• Entry and exit strategies\n` +
+        `• Real-time notifications\n` +
+        `• 24/7 support\n\n` +
+        `<i>Perfect for traders who want professional guidance!</i>`,
       {
         parse_mode: "HTML",
         ...Markup.inlineKeyboard([
-          [Markup.button.callback("📈 Subscribe to Signals ($80/month)", "select_service_signals")],
-          [Markup.button.callback("◀️ Back to Services", "browse_services")]
-        ]).oneTime()
+          [
+            Markup.button.callback(
+              "📈 Subscribe to Signals ($80/month)",
+              "select_service_signals"
+            ),
+          ],
+          [Markup.button.callback("◀️ Back to Services", "browse_services")],
+        ]).oneTime(),
       }
     );
   } catch (error) {
@@ -1967,11 +2053,19 @@ bot.action("select_service_basic", async (ctx) => {
 });
 
 bot.action("select_service_advanced", async (ctx) => {
-  await showPaymentInstructions(ctx, "Advanced Account Management", "$1000-$5000/month");
+  await showPaymentInstructions(
+    ctx,
+    "Advanced Account Management",
+    "$1000-$5000/month"
+  );
 });
 
 bot.action("select_service_premium", async (ctx) => {
-  await showPaymentInstructions(ctx, "Premium Account Management", "$5000-$10000/month");
+  await showPaymentInstructions(
+    ctx,
+    "Premium Account Management",
+    "$5000-$10000/month"
+  );
 });
 
 bot.action("select_service_signals", async (ctx) => {
@@ -1983,25 +2077,30 @@ const showPaymentInstructions = async (ctx, serviceName, price) => {
   try {
     await ctx.reply(
       `💳 <b>PAYMENT INSTRUCTIONS</b>\n\n` +
-      `🎯 <b>Service:</b> ${serviceName}\n` +
-      `💰 <b>Price:</b> ${price}\n\n` +
-      `📝 <b>How to Pay:</b>\n` +
-      `1. Transfer the amount to our bank account\n` +
-      `2. Take a screenshot of your payment receipt\n` +
-      `3. Send the receipt image to this bot\n` +
-      `4. We'll activate your service within 24 hours\n\n` +
-      `🏦 <b>Bank Details:</b>\n` +
-      `<strong>Account Name:</strong> Emmanuel Chidiebere\n` +
-      `<strong>Account Number:</strong> 6162598082\n` +
-      `<strong>Bank:</strong> Fidelity Bank\n\n` +
-      `<i>💡 After payment, just send your receipt as an image to this bot!</i>`,
+        `🎯 <b>Service:</b> ${serviceName}\n` +
+        `💰 <b>Price:</b> ${price}\n\n` +
+        `📝 <b>How to Pay:</b>\n` +
+        `1. Transfer the amount to our bank account\n` +
+        `2. Take a screenshot of your payment receipt\n` +
+        `3. Send the receipt image to this bot\n` +
+        `4. We'll activate your service within 24 hours\n\n` +
+        `🏦 <b>Bank Details:</b>\n` +
+        `<strong>Account Name:</strong> Emmanuel Chidiebere\n` +
+        `<strong>Account Number:</strong> 6162598082\n` +
+        `<strong>Bank:</strong> Fidelity Bank\n\n` +
+        `<i>💡 After payment, just send your receipt as an image to this bot!</i>`,
       {
         parse_mode: "HTML",
         ...Markup.inlineKeyboard([
-          [Markup.button.callback("✅ I've Made Payment - Send Receipt", "send_receipt")],
+          [
+            Markup.button.callback(
+              "✅ I've Made Payment - Send Receipt",
+              "send_receipt"
+            ),
+          ],
           [Markup.button.callback("❓ Need Help?", "help")],
-          [Markup.button.callback("◀️ Back to Services", "browse_services")]
-        ]).oneTime()
+          [Markup.button.callback("◀️ Back to Services", "browse_services")],
+        ]).oneTime(),
       }
     );
   } catch (error) {
@@ -2014,19 +2113,19 @@ const showPaymentInstructions = async (ctx, serviceName, price) => {
 bot.action("send_receipt", async (ctx) => {
   await ctx.reply(
     `📸 <b>SEND YOUR PAYMENT RECEIPT</b>\n\n` +
-    `Please send your payment receipt as an image.\n\n` +
-    `📝 <b>Make sure your receipt shows:</b>\n` +
-    `• Your name\n` +
-    `• Payment amount\n` +
-    `• Transaction reference\n` +
-    `• Bank details\n\n` +
-    `<i>Just send the image and we'll process it within 24 hours!</i>`,
+      `Please send your payment receipt as an image.\n\n` +
+      `📝 <b>Make sure your receipt shows:</b>\n` +
+      `• Your name\n` +
+      `• Payment amount\n` +
+      `• Transaction reference\n` +
+      `• Bank details\n\n` +
+      `<i>Just send the image and we'll process it within 24 hours!</i>`,
     { parse_mode: "HTML" }
   );
 });
 
 // Handle receipt images - when users send receipt images
-bot.on('photo', async (ctx) => {
+bot.on("photo", async (ctx) => {
   try {
     const userId = ctx.from.id;
     const user = await User.findOne({ telegramId: userId });
@@ -2045,46 +2144,43 @@ bot.on('photo', async (ctx) => {
 
     if (adminInfo.adminId) {
       // Send receipt to admin with user details
-      await bot.telegram.sendPhoto(
-        adminInfo.adminId,
-        fileId,
-        {
-          caption: `📸 <b>PAYMENT RECEIPT RECEIVED</b>\n\n` +
-            `👤 <b>User:</b> ${user.firstName} ${user.lastName}\n` +
-            `📧 <b>Email:</b> ${user.email}\n` +
-            `🆔 <b>Telegram ID:</b> ${userId}\n` +
-            `📅 <b>Received:</b> ${new Date().toLocaleString()}\n\n` +
-            `💳 <b>To approve payment:</b>\n` +
-            `Use: <code>/togglepayment ${user.email}</code>\n\n` +
-            `⏰ <i>Please review and approve within 24 hours</i>`,
-          parse_mode: "HTML"
-        }
-      );
+      await bot.telegram.sendPhoto(adminInfo.adminId, fileId, {
+        caption:
+          `📸 <b>PAYMENT RECEIPT RECEIVED</b>\n\n` +
+          `👤 <b>User:</b> ${user.firstName} ${user.lastName}\n` +
+          `📧 <b>Email:</b> ${user.email}\n` +
+          `🆔 <b>Telegram ID:</b> ${userId}\n` +
+          `📅 <b>Received:</b> ${new Date().toLocaleString()}\n\n` +
+          `💳 <b>To approve payment:</b>\n` +
+          `Use: <code>/togglepayment ${user.email}</code>\n\n` +
+          `⏰ <i>Please review and approve within 24 hours</i>`,
+        parse_mode: "HTML",
+      });
 
       // Confirm to user that receipt was received
       await ctx.reply(
         `✅ <b>RECEIPT RECEIVED!</b>\n\n` +
-        `Thank you ${user.firstName}! We've received your payment receipt.\n\n` +
-        `📋 <b>What happens next:</b>\n` +
-        `• We'll review your receipt within 24 hours\n` +
-        `• You'll receive a confirmation when approved\n` +
-        `• Your service will be activated automatically\n\n` +
-        `📞 <b>Need help?</b> Contact support at:\n` +
-        `<a href="https://wa.me/2349032085666">WhatsApp Support</a>\n\n` +
-        `⏰ <i>You'll get notified as soon as your payment is processed!</i>`,
+          `Thank you ${user.firstName}! We've received your payment receipt.\n\n` +
+          `📋 <b>What happens next:</b>\n` +
+          `• We'll review your receipt within 24 hours\n` +
+          `• You'll receive a confirmation when approved\n` +
+          `• Your service will be activated automatically\n\n` +
+          `📞 <b>Need help?</b> Contact support at:\n` +
+          `<a href="https://wa.me/2349032085666">WhatsApp Support</a>\n\n` +
+          `⏰ <i>You'll get notified as soon as your payment is processed!</i>`,
         {
           parse_mode: "HTML",
           ...Markup.inlineKeyboard([
             [Markup.button.callback("📊 Check My Status", "check_status")],
-            [Markup.button.callback("🏠 Main Menu", "main_menu")]
-          ]).oneTime()
+            [Markup.button.callback("🏠 Main Menu", "main_menu")],
+          ]).oneTime(),
         }
       );
     } else {
       // Fallback if no admin is set
       await ctx.reply(
         `✅ Receipt received! We'll process it soon.\n\n` +
-        `Please contact support if you don't hear back within 24 hours.`
+          `Please contact support if you don't hear back within 24 hours.`
       );
     }
   } catch (error) {
