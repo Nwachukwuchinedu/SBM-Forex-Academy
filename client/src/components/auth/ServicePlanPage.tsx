@@ -160,9 +160,9 @@ const ServicePlanPage = () => {
   }
 
   return (
-    <div className="min-h-screen flex bg-dark">
+    <div className="min-h-screen flex bg-white text-gray-800">
       {/* Sidebar */}
-      <aside className="hidden md:flex flex-col w-64 bg-dark-darker shadow-lg py-8 px-4">
+      <aside className="hidden md:flex flex-col w-64 bg-white shadow-lg py-8 px-4">
         <div className="mb-10">
           <span className="text-2xl font-bold text-gold">SBM Forex</span>
         </div>
@@ -191,7 +191,7 @@ const ServicePlanPage = () => {
       {/* Main Content */}
       <div className="flex-1 flex flex-col min-h-screen">
         {/* Responsive Navbar */}
-        <header className="md:hidden flex items-center justify-between bg-dark-darker px-4 py-4 shadow-sm relative">
+        <header className="md:hidden flex items-center justify-between bg-white px-4 py-4 shadow-sm relative">
           <div className="flex items-center gap-3">
             <button aria-label="Open menu" onClick={() => setMobileNavOpen(true)} className="p-2 text-gray-900">
               <Menu />
@@ -202,7 +202,7 @@ const ServicePlanPage = () => {
           {user && (
             <div ref={avatarRef} className="relative">
               <button
-                className="w-10 h-10 rounded-full bg-gold text-dark font-bold flex items-center justify-center text-xl focus:outline-none"
+                className="w-10 h-10 rounded-full bg-gold text-white font-bold flex items-center justify-center text-xl focus:outline-none"
                 onClick={() => setMenuOpen((open) => !open)}
                 aria-label="Account menu"
               >
@@ -210,11 +210,11 @@ const ServicePlanPage = () => {
               </button>
               {menuOpen && (
                 <div
-                  className="absolute right-0 mt-2 w-44 bg-dark-lighter rounded shadow-lg z-50"
+                  className="absolute right-0 mt-2 w-44 bg-white rounded shadow-lg z-50"
                 >
                   <Link
                     to="/dashboard/account"
-                    className="flex items-center gap-2 px-4 py-2 text-gray-900 hover:bg-gold/10 transition"
+                    className="flex items-center gap-2 px-4 py-2 text-gray-700 hover:bg-gray-50 transition"
                     onMouseDown={(e) => {
                       e.stopPropagation();
                       setMenuOpen(false);
@@ -223,7 +223,7 @@ const ServicePlanPage = () => {
                     <Settings className="h-4 w-4" /> Account Setting
                   </Link>
                   <button
-                    className="flex items-center gap-2 px-4 py-2 w-full text-left text-red-600 hover:bg-gold/10 transition"
+                    className="flex items-center gap-2 px-4 py-2 w-full text-left text-red-600 hover:bg-red-50 transition"
                     onMouseDown={(e) => {
                       e.stopPropagation();
                       handleLogout();
@@ -245,7 +245,7 @@ const ServicePlanPage = () => {
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               transition={{ duration: 0.2 }}
-              className="md:hidden fixed inset-0 z-50 bg-black/50"
+              className="md:hidden fixed inset-0 z-50 bg-black/30"
             >
               <motion.div
                 ref={drawerRef}
@@ -253,7 +253,7 @@ const ServicePlanPage = () => {
                 animate={{ x: 0 }}
                 exit={{ x: -300 }}
                 transition={{ type: "tween", duration: 0.25 }}
-                className="absolute left-0 top-0 h-full w-72 max-w=[85%] bg-dark-darker shadow-2xl p-6"
+                className="absolute left-0 top-0 h-full w-72 max-w=[85%] bg-white shadow-2xl p-6"
               >
                 <div className="flex items-center justify-between mb-6">
                   <span className="text-xl font-bold text-gold">SBM Forex</span>
@@ -262,10 +262,10 @@ const ServicePlanPage = () => {
                   </button>
                 </div>
                 <nav className="space-y-2">
-                  <Link to="/dashboard" onClick={() => setMobileNavOpen(false)} className="block px-3 py-2 rounded text-gray-400 hover:text-gold hover:bg-white/5">Dashboard</Link>
-                  <Link to="/dashboard/service" onClick={() => setMobileNavOpen(false)} className="block px-3 py-2 rounded text-gray-400 hover:text-gold hover:bg-white/5">Services</Link>
-                  <Link to="/dashboard/account" onClick={() => setMobileNavOpen(false)} className="block px-3 py-2 rounded text-gray-400 hover:text-gold hover:bg-white/5">Account Setting</Link>
-                  <button onClick={() => { setMobileNavOpen(false); handleLogout(); }} className="block w-full text-left px-3 py-2 rounded text-red-600 hover:bg-white/5">Logout</button>
+                  <Link to="/dashboard" onClick={() => setMobileNavOpen(false)} className="block px-3 py-2 rounded text-gray-700 hover:text-gold hover:bg-gray-50">Dashboard</Link>
+                  <Link to="/dashboard/service" onClick={() => setMobileNavOpen(false)} className="block px-3 py-2 rounded text-gray-700 hover:text-gold hover:bg-gray-50">Services</Link>
+                  <Link to="/dashboard/account" onClick={() => setMobileNavOpen(false)} className="block px-3 py-2 rounded text-gray-700 hover:text-gold hover:bg-gray-50">Account Setting</Link>
+                  <button onClick={() => { setMobileNavOpen(false); handleLogout(); }} className="block w-full text-left px-3 py-2 rounded text-red-600 hover:bg-red-50">Logout</button>
                 </nav>
               </motion.div>
             </motion.div>
@@ -307,8 +307,8 @@ const ServicePlanPage = () => {
           )}
         </div>
 
-        <div className="flex-1 flex flex-col items-center justify-center bg-grid-pattern">
-          <div className="card-glass p-8 max-w-md w-full text-center">
+        <div className="flex-1 flex flex-col items-center justify-center bg-gray-50">
+          <div className="bg-white rounded-xl shadow border border-gray-200 p-8 max-w-md w-full text-center">
             <h1 className="text-2xl font-bold text-gold mb-2">{plan.name}</h1>
             <div className="text-3xl font-bold text-gray-900 mb-1">
               ${plan.price}
@@ -358,13 +358,13 @@ const ServicePlanPage = () => {
               </div>
             </div>
             <button
-              className="btn btn-outline"
+              className="bg-white text-gold border border-gold hover:shadow font-semibold py-2 px-4 rounded-md transition-all duration-300"
               onClick={() => navigate("/dashboard/service")}
             >
               Back to Services
             </button>
           </div>
-          <footer className="text-center text-gray-400 py-6 bg-dark-darker w-full mt-8 shadow-inner">
+          <footer className="text-center text-gray-500 py-6 bg-white w-full mt-8 shadow-inner">
             © 2021–2025 SBM Forex Academy. All rights reserved.
           </footer>
         </div>

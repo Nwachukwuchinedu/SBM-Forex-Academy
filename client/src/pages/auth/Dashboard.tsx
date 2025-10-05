@@ -96,28 +96,28 @@ const DashboardPage = () => {
   }
 
   return (
-    <div className="min-h-screen flex bg-dark bg-grid-pattern">
+    <div className="min-h-screen flex bg-white text-gray-800">
       {/* Sidebar */}
-      <aside className="hidden md:flex flex-col w-64 bg-dark-darker shadow-lg py-8 px-4">
+      <aside className="hidden md:flex flex-col w-64 bg-white shadow-lg py-8 px-4">
         <div className="mb-10">
           <span className="text-2xl font-bold text-gold">SBM Forex</span>
         </div>
         <nav className="flex flex-col gap-1">
           <Link
             to="/dashboard"
-            className="flex items-center gap-3 px-3 py-2 rounded text-gold font-semibold bg-white/5"
+            className="flex items-center gap-3 px-3 py-2 rounded text-gold font-semibold bg-gray-50"
           >
             <User className="h-5 w-5" /> Dashboard
           </Link>
           <Link
             to="/dashboard/service"
-            className="flex items-center gap-3 px-3 py-2 rounded text-gray-400 hover:text-gold hover:bg-white/5 transition"
+            className="flex items-center gap-3 px-3 py-2 rounded text-gray-600 hover:text-gold hover:bg-gray-50 transition"
           >
             <DollarSign className="h-5 w-5" /> Services
           </Link>
           <Link
             to="/dashboard/account"
-            className="flex items-center gap-3 px-3 py-2 rounded text-gray-400 hover:text-gold hover:bg-white/5 transition"
+            className="flex items-center gap-3 px-3 py-2 rounded text-gray-600 hover:text-gold hover:bg-gray-50 transition"
           >
             <Settings className="h-5 w-5" /> Account Setting
           </Link>
@@ -125,7 +125,7 @@ const DashboardPage = () => {
         <div className="mt-auto pt-8">
           <button
             onClick={handleLogout}
-            className="w-full flex items-center justify-center gap-2 px-3 py-2 rounded text-red-500 hover:bg-red-500/10 transition"
+            className="w-full flex items-center justify-center gap-2 px-3 py-2 rounded text-red-600 hover:bg-red-50 transition"
           >
             <LogOut className="h-5 w-5" /> Logout
           </button>
@@ -135,7 +135,7 @@ const DashboardPage = () => {
       {/* Main Content */}
       <div className="flex-1 flex flex-col min-h-screen">
         {/* Responsive Navbar */}
-        <header className="md:hidden flex items-center justify-between bg-dark-darker px-4 py-4 shadow-sm relative">
+        <header className="md:hidden flex items-center justify-between bg-white px-4 py-4 shadow-sm relative">
           <div className="flex items-center gap-3">
             <button aria-label="Open menu" onClick={() => setMobileNavOpen(true)} className="p-2 text-gray-900">
               <Menu />
@@ -145,7 +145,7 @@ const DashboardPage = () => {
           {/* Avatar Circle */}
           <div ref={avatarRef} className="relative">
             <button
-              className="w-10 h-10 rounded-full bg-gold text-dark font-bold flex items-center justify-center text-xl focus:outline-none"
+              className="w-10 h-10 rounded-full bg-gold text-white font-bold flex items-center justify-center text-xl focus:outline-none"
               onClick={() => setMenuOpen((open) => !open)}
               aria-label="Account menu"
             >
@@ -153,12 +153,12 @@ const DashboardPage = () => {
             </button>
             {menuOpen && (
               <div
-                className="absolute right-0 mt-2 w-44 bg-dark-lighter rounded shadow-lg z-50"
+              className="absolute right-0 mt-2 w-44 bg-white rounded shadow-lg z-50"
                 // Do NOT add onClick or onMouseDown here!
               >
                 <Link
                   to="/dashboard/account"
-                  className="flex items-center gap-2 px-4 py-2 text-gray-900 hover:bg-gold/10 transition"
+                  className="flex items-center gap-2 px-4 py-2 text-gray-700 hover:bg-gray-50 transition"
                   onMouseDown={(e) => {
                     e.stopPropagation();
                     setMenuOpen(false);
@@ -167,7 +167,7 @@ const DashboardPage = () => {
                   <Settings className="h-4 w-4" /> Account Setting
                 </Link>
                 <button
-                  className="flex items-center gap-2 px-4 py-2 w-full text-left text-red-600 hover:bg-gold/10 transition"
+                  className="flex items-center gap-2 px-4 py-2 w-full text-left text-red-600 hover:bg-red-50 transition"
                   onMouseDown={(e) => {
                     e.stopPropagation();
                     handleLogout();
@@ -188,7 +188,7 @@ const DashboardPage = () => {
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               transition={{ duration: 0.2 }}
-              className="md:hidden fixed inset-0 z-50 bg-black/50"
+              className="md:hidden fixed inset-0 z-50 bg-black/30"
             >
               <motion.div
                 ref={drawerRef}
@@ -196,7 +196,7 @@ const DashboardPage = () => {
                 animate={{ x: 0 }}
                 exit={{ x: -300 }}
                 transition={{ type: "tween", duration: 0.25 }}
-                className="absolute left-0 top-0 h-full w-72 max-w-[85%] bg-dark-darker shadow-2xl p-6"
+                className="absolute left-0 top-0 h-full w-72 max-w-[85%] bg-white shadow-2xl p-6"
               >
                 <div className="flex items-center justify-between mb-6">
                   <span className="text-xl font-bold text-gold">SBM Forex</span>
@@ -205,10 +205,10 @@ const DashboardPage = () => {
                   </button>
                 </div>
                 <nav className="space-y-2">
-                  <Link to="/dashboard" onClick={() => setMobileNavOpen(false)} className="block px-3 py-2 rounded text-gray-400 hover:text-gold hover:bg-white/5">Dashboard</Link>
-                  <Link to="/dashboard/service" onClick={() => setMobileNavOpen(false)} className="block px-3 py-2 rounded text-gray-400 hover:text-gold hover:bg-white/5">Services</Link>
-                  <Link to="/dashboard/account" onClick={() => setMobileNavOpen(false)} className="block px-3 py-2 rounded text-gray-400 hover:text-gold hover:bg-white/5">Account Setting</Link>
-                  <button onClick={() => { setMobileNavOpen(false); handleLogout(); }} className="block w-full text-left px-3 py-2 rounded text-red-600 hover:bg-white/5">Logout</button>
+                  <Link to="/dashboard" onClick={() => setMobileNavOpen(false)} className="block px-3 py-2 rounded text-gray-700 hover:text-gold hover:bg-gray-50">Dashboard</Link>
+                  <Link to="/dashboard/service" onClick={() => setMobileNavOpen(false)} className="block px-3 py-2 rounded text-gray-700 hover:text-gold hover:bg-gray-50">Services</Link>
+                  <Link to="/dashboard/account" onClick={() => setMobileNavOpen(false)} className="block px-3 py-2 rounded text-gray-700 hover:text-gold hover:bg-gray-50">Account Setting</Link>
+                  <button onClick={() => { setMobileNavOpen(false); handleLogout(); }} className="block w-full text-left px-3 py-2 rounded text-red-600 hover:bg-red-50">Logout</button>
                 </nav>
               </motion.div>
             </motion.div>

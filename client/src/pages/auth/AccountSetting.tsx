@@ -225,9 +225,9 @@ const AccountSettingPage = () => {
   }
 
   return (
-    <div className="min-h-screen flex bg-dark">
+    <div className="min-h-screen flex bg-white text-gray-800">
       {/* Sidebar */}
-      <aside className="hidden md:flex flex-col w-64 bg-dark-darker shadow-lg py-8 px-4">
+      <aside className="hidden md:flex flex-col w-64 bg-white shadow-lg py-8 px-4">
         <div className="mb-10">
           <span className="text-2xl font-bold text-gold">SBM Forex</span>
         </div>
@@ -256,7 +256,7 @@ const AccountSettingPage = () => {
       {/* Main Content */}
       <div className="flex-1 flex flex-col min-h-screen">
         {/* Responsive Navbar */}
-        <header className="md:hidden flex items-center justify-between bg-dark-darker px-4 py-4 shadow-sm relative">
+        <header className="md:hidden flex items-center justify-between bg-white px-4 py-4 shadow-sm relative">
           <div className="flex items-center gap-3">
             <button aria-label="Open menu" onClick={() => setMobileNavOpen(true)} className="p-2 text-gray-900">
               <Menu />
@@ -266,7 +266,7 @@ const AccountSettingPage = () => {
           {/* Avatar Circle */}
           <div ref={avatarRef} className="relative">
             <button
-              className="w-10 h-10 rounded-full bg-gold text-dark font-bold flex items-center justify-center text-xl focus:outline-none"
+              className="w-10 h-10 rounded-full bg-gold text-white font-bold flex items-center justify-center text-xl focus:outline-none"
               onClick={() => setMenuOpen((open) => !open)}
               aria-label="Account menu"
             >
@@ -274,12 +274,12 @@ const AccountSettingPage = () => {
             </button>
             {menuOpen && (
               <div
-                className="absolute right-0 mt-2 w-44 bg-dark-lighter rounded shadow-lg z-50"
+              className="absolute right-0 mt-2 w-44 bg-white rounded shadow-lg z-50"
                 // Do NOT add onClick or onMouseDown here!
               >
                 <Link
                   to="/dashboard/account"
-                  className="flex items-center gap-2 px-4 py-2 text-gray-900 hover:bg-gold/10 transition"
+                  className="flex items-center gap-2 px-4 py-2 text-gray-700 hover:bg-gray-50 transition"
                   onMouseDown={(e) => {
                     e.stopPropagation();
                     setMenuOpen(false);
@@ -288,7 +288,7 @@ const AccountSettingPage = () => {
                   <Settings className="h-4 w-4" /> Account Setting
                 </Link>
                 <button
-                  className="flex items-center gap-2 px-4 py-2 w-full text-left text-red-600 hover:bg-gold/10 transition"
+                  className="flex items-center gap-2 px-4 py-2 w-full text-left text-red-600 hover:bg-red-50 transition"
                   onMouseDown={(e) => {
                     e.stopPropagation();
                     handleLogout();
@@ -309,7 +309,7 @@ const AccountSettingPage = () => {
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               transition={{ duration: 0.2 }}
-              className="md:hidden fixed inset-0 z-50 bg-black/50"
+              className="md:hidden fixed inset-0 z-50 bg-black/30"
             >
               <motion.div
                 ref={drawerRef}
@@ -317,7 +317,7 @@ const AccountSettingPage = () => {
                 animate={{ x: 0 }}
                 exit={{ x: -300 }}
                 transition={{ type: "tween", duration: 0.25 }}
-                className="absolute left-0 top-0 h-full w-72 max-w-[85%] bg-dark-darker shadow-2xl p-6"
+                className="absolute left-0 top-0 h-full w-72 max-w-[85%] bg-white shadow-2xl p-6"
               >
                 <div className="flex items-center justify-between mb-6">
                   <span className="text-xl font-bold text-gold">SBM Forex</span>
@@ -326,10 +326,10 @@ const AccountSettingPage = () => {
                   </button>
                 </div>
                 <nav className="space-y-2">
-                  <Link to="/dashboard" onClick={() => setMobileNavOpen(false)} className="block px-3 py-2 rounded text-gray-400 hover:text-gold hover:bg.white/5">Dashboard</Link>
-                  <Link to="/dashboard/service" onClick={() => setMobileNavOpen(false)} className="block px-3 py-2 rounded text-gray-400 hover:text-gold hover:bg-white/5">Services</Link>
-                  <Link to="/dashboard/account" onClick={() => setMobileNavOpen(false)} className="block px-3 py-2 rounded text-gray-400 hover:text-gold hover:bg-white/5">Account Setting</Link>
-                  <button onClick={() => { setMobileNavOpen(false); handleLogout(); }} className="block w-full text-left px-3 py-2 rounded text-red-600 hover:bg-white/5">Logout</button>
+                  <Link to="/dashboard" onClick={() => setMobileNavOpen(false)} className="block px-3 py-2 rounded text-gray-700 hover:text-gold hover:bg-gray-50">Dashboard</Link>
+                  <Link to="/dashboard/service" onClick={() => setMobileNavOpen(false)} className="block px-3 py-2 rounded text-gray-700 hover:text-gold hover:bg-gray-50">Services</Link>
+                  <Link to="/dashboard/account" onClick={() => setMobileNavOpen(false)} className="block px-3 py-2 rounded text-gray-700 hover:text-gold hover:bg-gray-50">Account Setting</Link>
+                  <button onClick={() => { setMobileNavOpen(false); handleLogout(); }} className="block w-full text-left px-3 py-2 rounded text-red-600 hover:bg-red-50">Logout</button>
                 </nav>
               </motion.div>
             </motion.div>
@@ -340,23 +340,23 @@ const AccountSettingPage = () => {
         <div className="hidden md:flex justify-end items-center px-10 pt-8">
           <div ref={avatarRef} className="relative">
             <button
-              className="w-12 h-12 rounded-full bg-gold text-dark font-bold flex items-center justify-center text-2xl focus:outline-none"
+              className="w-12 h-12 rounded-full bg-gold text-white font-bold flex items-center justify-center text-2xl focus:outline-none"
               onClick={() => setMenuOpen((open) => !open)}
               aria-label="Account menu"
             >
               {user.firstName.charAt(0).toUpperCase()}
             </button>
             {menuOpen && (
-              <div className="absolute right-0 mt-2 w-48 bg-dark-lighter rounded shadow-lg border border-gray-700 z-50">
+              <div className="absolute right-0 mt-2 w-48 bg-white rounded shadow-lg z-50">
                 <Link
                   to="/dashboard/account"
-                  className="flex items-center gap-2 px-4 py-2 text-gray-900 hover:bg-gold/10 transition"
+                    className="flex items-center gap-2 px-4 py-2 text-gray-700 hover:bg-gray-50 transition"
                   onClick={() => setMenuOpen(false)}
                 >
                   <Settings className="h-4 w-4" /> Account Setting
                 </Link>
                 <button
-                  className="flex items-center gap-2 px-4 py-2 w-full text-left text-red-600 hover:bg-gold/10 transition"
+                    className="flex items-center gap-2 px-4 py-2 w-full text-left text-red-600 hover:bg-red-50 transition"
                   onClick={handleLogout}
                 >
                   <LogOut className="h-4 w-4" /> Logout
@@ -366,17 +366,15 @@ const AccountSettingPage = () => {
           </div>
         </div>
 
-        <main className="flex-1 flex flex-col items-center bg-dark bg-grid-pattern py-10">
-          <div className="card-glass p-8 w-full max-w-xl">
-            <h1 className="text-2xl font-bold text-gold mb-6">
-              Account Setting
-            </h1>
+        <main className="flex-1 flex flex-col items-center bg-gray-50 py-10">
+          <div className="bg-white rounded-xl shadow border border-gray-200 p-8 w-full max-w-xl">
+            <h1 className="text-2xl font-bold text-gold mb-6">Account Setting</h1>
             <form onSubmit={handleProfileUpdate} className="space-y-4 mb-8">
               <div>
                 <label className="block text-gray-400 mb-1">First Name</label>
                 <input
                   type="text"
-                  className="w-full bg-dark-lighter border border-gray-700 rounded-md py-2 px-3 text-gray-900 focus:outline-none focus:ring-2 focus:ring-gold/50"
+                  className="w-full bg-white border border-gray-300 rounded-md py-2 px-3 text-gray-900 focus:outline-none focus:ring-2 focus:ring-gold/50"
                   value={form.firstName}
                   onChange={(e) =>
                     setForm({ ...form, firstName: e.target.value })
@@ -388,7 +386,7 @@ const AccountSettingPage = () => {
                 <label className="block text-gray-400 mb-1">Last Name</label>
                 <input
                   type="text"
-                  className="w-full bg-dark-lighter border border-gray-700 rounded-md py-2 px-3 text-gray-900 focus:outline-none focus:ring-2 focus:ring-gold/50"
+                  className="w-full bg-white border border-gray-300 rounded-md py-2 px-3 text-gray-900 focus:outline-none focus:ring-2 focus:ring-gold/50"
                   value={form.lastName}
                   onChange={(e) =>
                     setForm({ ...form, lastName: e.target.value })
@@ -400,7 +398,7 @@ const AccountSettingPage = () => {
                 <label className="block text-gray-400 mb-1">Email</label>
                 <input
                   type="email"
-                  className="w-full bg-gray-300 border border-gray-00 rounded-md py-2 px-3 text-gray-500 cursor-not-allowed opacity-60"
+                  className="w-full bg-gray-100 border border-gray-200 rounded-md py-2 px-3 text-gray-500 cursor-not-allowed opacity-60"
                   value={form.email}
                   readOnly
                   disabled
@@ -409,7 +407,7 @@ const AccountSettingPage = () => {
               </div>
               <button
                 type="submit"
-                className="btn btn-primary w-full mt-2"
+                className="w-full bg-white text-gold border border-gold hover:shadow font-semibold py-3 px-4 rounded-md transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-gold focus:ring-opacity-50 mt-2"
                 disabled={loading}
               >
                 {loading ? "Updating..." : "Update Profile"}
@@ -428,7 +426,7 @@ const AccountSettingPage = () => {
                 </label>
                 <input
                   type="password"
-                  className="w-full bg-dark-lighter border border-gray-700 rounded-md py-2 px-3 text-gray-900 focus:outline-none focus:ring-2 focus:ring-gold/50"
+                  className="w-full bg-white border border-gray-300 rounded-md py-2 px-3 text-gray-900 focus:outline-none focus:ring-2 focus:ring-gold/50"
                   value={passwordForm.currentPassword}
                   onChange={(e) =>
                     setPasswordForm({
@@ -443,7 +441,7 @@ const AccountSettingPage = () => {
                 <label className="block text-gray-400 mb-1">New Password</label>
                 <input
                   type="password"
-                  className="w-full bg-dark-lighter border border-gray-700 rounded-md py-2 px-3 text-gray-900 focus:outline-none focus:ring-2 focus:ring-gold/50"
+                  className="w-full bg-white border border-gray-300 rounded-md py-2 px-3 text-gray-900 focus:outline-none focus:ring-2 focus:ring-gold/50"
                   value={passwordForm.newPassword}
                   onChange={(e) =>
                     setPasswordForm({
@@ -460,7 +458,7 @@ const AccountSettingPage = () => {
                 </label>
                 <input
                   type="password"
-                  className="w-full bg-dark-lighter border border-gray-700 rounded-md py-2 px-3 text-gray-900 focus:outline-none focus:ring-2 focus:ring-gold/50"
+                  className="w-full bg-white border border-gray-300 rounded-md py-2 px-3 text-gray-900 focus:outline-none focus:ring-2 focus:ring-gold/50"
                   value={passwordForm.confirmPassword}
                   onChange={(e) =>
                     setPasswordForm({
@@ -473,7 +471,7 @@ const AccountSettingPage = () => {
               </div>
               <button
                 type="submit"
-                className="btn btn-primary w-full mt-2"
+                className="w-full bg-white text-gold border border-gold hover:shadow font-semibold py-3 px-4 rounded-md transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-gold focus:ring-opacity-50 mt-2"
                 disabled={loading}
               >
                 {loading ? "Updating..." : "Update Password"}
@@ -492,7 +490,7 @@ const AccountSettingPage = () => {
               </p>
               
               {token ? (
-                <div className="bg-dark-lighter rounded-md p-4 shadow">
+                <div className="bg-gray-50 rounded-md p-4 shadow border border-gray-200">
                   <div className="flex justify-between items-start mb-2">
                     <label className="block text-gray-400 mb-1">
                       Connection Token
@@ -504,7 +502,7 @@ const AccountSettingPage = () => {
                       Copy
                     </button>
                   </div>
-                  <div className="font-mono text-sm bg-gray-800/80 p-3 rounded break-all">
+                  <div className="font-mono text-sm bg-gray-800/70 text-white p-3 rounded break-all">
                     {token}
                   </div>
                   {tokenExpiry && (
