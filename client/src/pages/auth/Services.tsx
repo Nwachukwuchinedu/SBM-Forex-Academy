@@ -164,7 +164,7 @@ const AuthServicesPage = () => {
   return (
     <div className="min-h-screen flex bg-dark">
       {/* Sidebar */}
-      <aside className="hidden md:flex flex-col w-64 bg-dark-darker border-r border-gray-800 py-8 px-4">
+      <aside className="hidden md:flex flex-col w-64 bg-dark-darker shadow-lg py-8 px-4">
         <div className="mb-10">
           <span className="text-2xl font-bold text-gold">SBM Forex</span>
         </div>
@@ -205,7 +205,7 @@ const AuthServicesPage = () => {
       {/* Main Content */}
       <div className="flex-1 flex flex-col min-h-screen">
         {/* Responsive Navbar */}
-        <header className="md:hidden flex items-center justify-between bg-dark-darker px-4 py-4 border-b border-gray-800 relative">
+        <header className="md:hidden flex items-center justify-between bg-dark-darker px-4 py-4 shadow-sm relative">
           <div className="flex items-center gap-3">
             <button aria-label="Open menu" onClick={() => setMobileNavOpen(true)} className="p-2 text-gray-900">
               <Menu />
@@ -223,7 +223,7 @@ const AuthServicesPage = () => {
             </button>
             {menuOpen && (
               <div
-                className="absolute right-0 mt-2 w-44 bg-dark-lighter rounded shadow-lg border border-gray-700 z-50"
+                className="absolute right-0 mt-2 w-44 bg-dark-lighter rounded shadow-lg z-50"
                 // Do NOT add onClick or onMouseDown here!
               >
                 <Link
@@ -266,7 +266,7 @@ const AuthServicesPage = () => {
                 animate={{ x: 0 }}
                 exit={{ x: -300 }}
                 transition={{ type: "tween", duration: 0.25 }}
-                className="absolute left-0 top-0 h-full w-72 max-w-[85%] bg-dark-darker border-r border-gray-800 shadow-2xl p-6"
+                className="absolute left-0 top-0 h-full w-72 max-w-[85%] bg-dark-darker shadow-2xl p-6"
               >
                 <div className="flex items-center justify-between mb-6">
                   <span className="text-xl font-bold text-gold">SBM Forex</span>
@@ -434,7 +434,7 @@ const AuthServicesPage = () => {
         {/* Consent Modal */}
         <ConsentModal />
         {/* Footer */}
-        <footer className="text-center text-gray-400 py-6 border-t border-gray-800 bg-dark-darker">
+        <footer className="text-center text-gray-400 py-6 bg-dark-darker shadow-inner">
           © 2021–2025 SBM Forex Academy. All rights reserved.
         </footer>
       </div>

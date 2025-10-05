@@ -227,7 +227,7 @@ const AccountSettingPage = () => {
   return (
     <div className="min-h-screen flex bg-dark">
       {/* Sidebar */}
-      <aside className="hidden md:flex flex-col w-64 bg-dark-darker border-r border-gray-800 py-8 px-4">
+      <aside className="hidden md:flex flex-col w-64 bg-dark-darker shadow-lg py-8 px-4">
         <div className="mb-10">
           <span className="text-2xl font-bold text-gold">SBM Forex</span>
         </div>
@@ -256,7 +256,7 @@ const AccountSettingPage = () => {
       {/* Main Content */}
       <div className="flex-1 flex flex-col min-h-screen">
         {/* Responsive Navbar */}
-        <header className="md:hidden flex items-center justify-between bg-dark-darker px-4 py-4 border-b border-gray-800 relative">
+        <header className="md:hidden flex items-center justify-between bg-dark-darker px-4 py-4 shadow-sm relative">
           <div className="flex items-center gap-3">
             <button aria-label="Open menu" onClick={() => setMobileNavOpen(true)} className="p-2 text-gray-900">
               <Menu />
@@ -274,7 +274,7 @@ const AccountSettingPage = () => {
             </button>
             {menuOpen && (
               <div
-                className="absolute right-0 mt-2 w-44 bg-dark-lighter rounded shadow-lg border border-gray-700 z-50"
+                className="absolute right-0 mt-2 w-44 bg-dark-lighter rounded shadow-lg z-50"
                 // Do NOT add onClick or onMouseDown here!
               >
                 <Link
@@ -317,7 +317,7 @@ const AccountSettingPage = () => {
                 animate={{ x: 0 }}
                 exit={{ x: -300 }}
                 transition={{ type: "tween", duration: 0.25 }}
-                className="absolute left-0 top-0 h-full w-72 max-w-[85%] bg-dark-darker border-r border-gray-800 shadow-2xl p-6"
+                className="absolute left-0 top-0 h-full w-72 max-w-[85%] bg-dark-darker shadow-2xl p-6"
               >
                 <div className="flex items-center justify-between mb-6">
                   <span className="text-xl font-bold text-gold">SBM Forex</span>
@@ -416,7 +416,7 @@ const AccountSettingPage = () => {
               </button>
             </form>
 
-            <hr className="my-6 border-gray-700" />
+            <div className="my-6 h-px bg-white/10" />
 
             <form onSubmit={handlePasswordUpdate} className="space-y-4">
               <h2 className="text-lg font-semibold text-gold mb-2">
@@ -480,7 +480,7 @@ const AccountSettingPage = () => {
               </button>
             </form>
 
-            <hr className="my-6 border-gray-700" />
+            <div className="my-6 h-px bg-white/10" />
 
             {/* Telegram Connection Section */}
             <div className="space-y-4">
@@ -492,7 +492,7 @@ const AccountSettingPage = () => {
               </p>
               
               {token ? (
-                <div className="bg-dark-lighter border border-gray-700 rounded-md p-4">
+                <div className="bg-dark-lighter rounded-md p-4 shadow">
                   <div className="flex justify-between items-start mb-2">
                     <label className="block text-gray-400 mb-1">
                       Connection Token
@@ -504,7 +504,7 @@ const AccountSettingPage = () => {
                       Copy
                     </button>
                   </div>
-                  <div className="font-mono text-sm bg-gray-800 p-3 rounded break-all">
+                  <div className="font-mono text-sm bg-gray-800/80 p-3 rounded break-all">
                     {token}
                   </div>
                   {tokenExpiry && (
@@ -546,7 +546,7 @@ const AccountSettingPage = () => {
         </main>
 
         {/* Footer */}
-        <footer className="text-center text-gray-400 py-6 border-t border-gray-800 bg-dark-darker">
+        <footer className="text-center text-gray-400 py-6 bg-dark-darker shadow-inner">
           © 2021–2025 SBM Forex Academy. All rights reserved.
         </footer>
       </div>
