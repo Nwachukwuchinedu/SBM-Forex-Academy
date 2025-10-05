@@ -923,7 +923,8 @@ bot.command("token", async (ctx) => {
               (result.data.paymentStatus
                 ? "You will now receive educational content from the group (if you're a group member)."
                 : "You will not receive educational content until your payment status is active.") +
-              groupMessage
+              groupMessage,
+            { parse_mode: "HTML" }
           );
 
           // Show the appropriate menu based on user role
@@ -937,14 +938,16 @@ bot.command("token", async (ctx) => {
           "<b>❌ Connection Failed</b>\n\n" +
             result.message +
             "\n\n" +
-            "Please generate a new token and try again."
+            "Please generate a new token and try again.",
+          { parse_mode: "HTML" }
         );
       }
     } catch (apiError) {
       console.error("Error calling validation API:", apiError);
       await ctx.reply(
         "<b>❌ Connection Failed</b>\n\n" +
-          "An error occurred while validating your token. Please try again later."
+          "An error occurred while validating your token. Please try again later.",
+        { parse_mode: "HTML" }
       );
     }
   } catch (error) {
