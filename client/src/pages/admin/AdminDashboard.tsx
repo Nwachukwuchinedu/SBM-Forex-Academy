@@ -225,7 +225,7 @@ const AdminDashboard = () => {
           </div>
           <button 
             onClick={handleLogout}
-            className="bg-transparent border-2 border-gold text-gold hover:bg-gold hover:text-gray-900 px-6 py-2 rounded-lg transition-all duration-300 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-gold focus:ring-opacity-50"
+            className="bg-white text-gold border border-gold hover:shadow px-6 py-2 rounded-lg transition-all duration-300 ease-in-out focus:outline-none focus:ring-2 focus:ring-gold focus:ring-opacity-50"
           >
             <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 inline-block mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
@@ -303,7 +303,7 @@ const AdminDashboard = () => {
             </div>
             <button
               type="submit"
-              className="w-full bg-gradient-to-r from-gold to-amber-500 hover:from-amber-500 hover:to-gold text-gray-900 font-semibold py-3 px-4 rounded-lg transition-all duration-300 ease-in-out transform hover:scale-[1.02] focus:outline-none focus:ring-2 focus:ring-gold focus:ring-opacity-50 shadow-md hover:shadow-lg"
+              className="w-full bg-white text-gold border border-gold hover:shadow font-semibold py-3 px-4 rounded-lg transition-all duration-300 ease-in-out focus:outline-none focus:ring-2 focus:ring-gold focus:ring-opacity-50"
             >
               <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 inline-block mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4" />
@@ -360,7 +360,7 @@ const AdminDashboard = () => {
             </div>
             <button
               type="submit"
-              className="w-full bg-gradient-to-r from-gold to-amber-500 hover:from-amber-500 hover:to-gold text-gray-900 font-semibold py-3 px-4 rounded-lg transition-all duration-300 ease-in-out transform hover:scale-[1.02] focus:outline-none focus:ring-2 focus:ring-gold focus:ring-opacity-50 shadow-md hover:shadow-lg"
+              className="w-full bg-white text-gold border border-gold hover:shadow font-semibold py-3 px-4 rounded-lg transition-all duration-300 ease-in-out focus:outline-none focus:ring-2 focus:ring-gold focus:ring-opacity-50"
             >
               <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 inline-block mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4" />
@@ -394,9 +394,9 @@ const AdminDashboard = () => {
               disabled={tokenLoading}
               className={`w-full ${
                 tokenLoading 
-                  ? "bg-gray-400 cursor-not-allowed" 
-                  : "bg-gradient-to-r from-gold to-amber-500 hover:from-amber-500 hover:to-gold"
-              } text-gray-900 font-semibold py-3 px-4 rounded-lg transition-all duration-300 ease-in-out transform hover:scale-[1.02] focus:outline-none focus:ring-2 focus:ring-gold focus:ring-opacity-50 shadow-md hover:shadow-lg flex items-center justify-center`}
+                  ? "bg-gray-200 text-gray-500 cursor-not-allowed" 
+                  : "bg-white text-gold border border-gold hover:shadow"
+              } font-semibold py-3 px-4 rounded-lg transition-all duration-300 ease-in-out focus:outline-none focus:ring-2 focus:ring-gold focus:ring-opacity-50 flex items-center justify-center`}
             >
               {tokenLoading ? (
                 <>
@@ -434,7 +434,7 @@ const AdminDashboard = () => {
                       setTokenMessage("✅ Token copied to clipboard!");
                       setTimeout(() => setTokenMessage(""), 3000);
                     }}
-                    className="bg-gold hover:bg-amber-500 text-gray-900 px-4 rounded-r-lg transition-colors duration-200 flex items-center"
+                    className="bg-white text-gold border border-gold border-l-0 px-4 rounded-r-lg transition-all duration-200 hover:shadow flex items-center"
                   >
                     <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
@@ -499,9 +499,9 @@ const AdminDashboard = () => {
               disabled={telegramGroupLoading}
               className={`w-full ${
                 telegramGroupLoading 
-                  ? "bg-gray-400 cursor-not-allowed" 
-                  : "bg-gradient-to-r from-gold to-amber-500 hover:from-amber-500 hover:to-gold"
-              } text-gray-900 font-semibold py-3 px-4 rounded-lg transition-all duration-300 ease-in-out transform hover:scale-[1.02] focus:outline-none focus:ring-2 focus:ring-gold focus:ring-opacity-50 shadow-md hover:shadow-lg flex items-center justify-center`}
+                  ? "bg-gray-200 text-gray-500 cursor-not-allowed" 
+                  : "bg-white text-gold border border-gold hover:shadow"
+              } font-semibold py-3 px-4 rounded-lg transition-all duration-300 ease-in-out focus:outline-none focus:ring-2 focus:ring-gold focus:ring-opacity-50 flex items-center justify-center`}
             >
               {telegramGroupLoading ? (
                 <>
@@ -525,7 +525,7 @@ const AdminDashboard = () => {
       </div>
 
       {/* User Table */}
-      <div className="lg:col-span-2 bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden">
+      <div className="md:col-span-2 lg:col-span-2 bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden">
         <div className="p-6 border-b border-gray-200">
           <h2 className="text-xl font-semibold text-gold flex items-center">
             <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -565,7 +565,7 @@ const AdminDashboard = () => {
                   >
                     <td className="py-3 px-4 whitespace-nowrap">
                       <div className="flex items-center">
-                        <div className="flex-shrink-0 h-8 w-8 bg-gradient-to-br from-gold to-amber-500 rounded-full flex items-center justify-center text-white text-sm font-bold">
+                        <div className="flex-shrink-0 h-8 w-8 bg-gold rounded-full flex items-center justify-center text-white text-sm font-bold">
                           {u.firstName.charAt(0)}{u.lastName.charAt(0)}
                         </div>
                         <div className="ml-3">

@@ -62,7 +62,7 @@ const AdminLogin = () => {
         />
         <button
           type="submit"
-          className="btn btn-primary w-full"
+          className="w-full bg-white text-gold border border-gold hover:shadow font-semibold py-3 px-4 rounded-md transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-gold focus:ring-opacity-50"
           disabled={loading}
         >
           {loading ? "Logging in..." : "Login"}
