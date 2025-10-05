@@ -77,6 +77,31 @@ bot.telegram.setMyCommands([
   { command: "logout", description: "Logout from your account" },
 ]);
 
+// Set bot description that users see before starting
+bot.telegram
+  .setMyDescription(
+    "Welcome to SBM Forex Academy! 🚀\n\n" +
+      "Connect your account to access educational content, trading signals, and premium services.\n\n" +
+      "Features:\n" +
+      "• Account Management Services\n" +
+      "• Trading Signal Provision\n" +
+      "• Educational Content Access\n" +
+      "• Payment Status Management\n\n" +
+      "Use /start to begin your journey with us!"
+  )
+  .catch((error) => {
+    console.error("Failed to set bot description:", error);
+  });
+
+// Set bot short description (shown in chat list)
+bot.telegram
+  .setMyShortDescription(
+    "SBM Forex Academy - Your gateway to professional forex trading education and services"
+  )
+  .catch((error) => {
+    console.error("Failed to set bot short description:", error);
+  });
+
 // Get admin ID and group invite link from database
 const getAdminInfo = async () => {
   try {

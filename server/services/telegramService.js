@@ -33,9 +33,30 @@ const setupBotMenu = async () => {
       { command: "help", description: "Show help message" },
       { command: "logout", description: "Logout from your account" },
     ]);
-    console.log("✅ Telegram bot menu configured");
+
+    // Set bot description that users see before starting
+    await bot.telegram.setMyDescription(
+      "Welcome to SBM Forex Academy! 🚀\n\n" +
+        "Connect your account to access educational content, trading signals, and premium services.\n\n" +
+        "Features:\n" +
+        "• Account Management Services\n" +
+        "• Trading Signal Provision\n" +
+        "• Educational Content Access\n" +
+        "• Payment Status Management\n\n" +
+        "Use /start to begin your journey with us!"
+    );
+
+    // Set bot short description (shown in chat list)
+    await bot.telegram.setMyShortDescription(
+      "SBM Forex Academy - Your gateway to professional forex trading education and services"
+    );
+
+    console.log("✅ Telegram bot menu and descriptions configured");
   } catch (error) {
-    console.error("❌ Failed to configure Telegram bot menu:", error);
+    console.error(
+      "❌ Failed to configure Telegram bot menu and descriptions:",
+      error
+    );
   }
 };
 
