@@ -4,7 +4,7 @@ import dotenv from "dotenv";
 dotenv.config();
 
 const transporter = nodemailer.createTransport({
-  host: 'smtp.zoho.com',
+  host: "smtp.zoho.com",
   port: 465,
   secure: true,
   auth: {
@@ -12,7 +12,6 @@ const transporter = nodemailer.createTransport({
     pass: process.env.EMAIL_PASS,
   },
 });
-
 
 export const sendVerificationEmail = async (email, token, firstName) => {
   const verificationUrl = `${process.env.CLIENT_URL}/verify-email?token=${token}`;
@@ -41,6 +40,66 @@ export const sendVerificationEmail = async (email, token, firstName) => {
           <p style="color: #666; font-size: 14px;">
             This verification link will expire in 24 hours.
           </p>
+        </div>
+        <div style="background-color: #e5e7eb; padding: 20px; text-align: center; font-size: 12px; color: #666;">
+          <p>© 2024 SBM Forex Academy. All rights reserved.</p>
+        </div>
+      </div>
+    `,
+  };
+
+  await transporter.sendMail(mailOptions);
+};
+
+export const sendPaymentConfirmationEmail = async (user, serviceInfo) => {
+  const mailOptions = {
+    from: `"SBM Forex Academy" <${process.env.EMAIL_FROM}>`,
+    to: user.email,
+    subject: "Payment Confirmation - SBM Forex Academy",
+    html: `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+        <div style="background: linear-gradient(135deg, #6b21a8, #9333ea); padding: 20px; text-align: center;">
+          <h1 style="color: white; margin: 0;">SBM Forex Academy</h1>
+        </div>
+        <div style="padding: 30px; background-color: #f9fafb;">
+          <h2 style="color: #333;">Payment Confirmation</h2>
+          <p style="color: #666; line-height: 1.6;">
+            Dear ${user.firstName},<br><br>
+            Thank you for your payment! Your subscription has been successfully activated.
+          </p>
+          
+          <div style="background-color: #ffffff; border-radius: 8px; padding: 20px; margin: 20px 0; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+            <h3 style="color: #6b21a8; margin-top: 0;">Service Details</h3>
+            <table style="width: 100%; border-collapse: collapse;">
+              <tr>
+                <td style="padding: 8px 0; border-bottom: 1px solid #eee;"><strong>Service:</strong></td>
+                <td style="padding: 8px 0; border-bottom: 1px solid #eee;">${serviceInfo.name}</td>
+              </tr>
+              <tr>
+                <td style="padding: 8px 0; border-bottom: 1px solid #eee;"><strong>Price:</strong></td>
+                <td style="padding: 8px 0; border-bottom: 1px solid #eee;">$${serviceInfo.price}</td>
+              </tr>
+              <tr>
+                <td style="padding: 8px 0; border-bottom: 1px solid #eee;"><strong>Description:</strong></td>
+                <td style="padding: 8px 0; border-bottom: 1px solid #eee;">${serviceInfo.description}</td>
+              </tr>
+              <tr>
+                <td style="padding: 8px 0;"><strong>Status:</strong></td>
+                <td style="padding: 8px 0;"><span style="color: #10b981; font-weight: bold;">ACTIVE</span></td>
+              </tr>
+            </table>
+          </div>
+          
+          <p style="color: #666; line-height: 1.6;">
+            You now have full access to all educational content and services included in your subscription.
+          </p>
+          
+          <div style="text-align: center; margin: 30px 0;">
+            <a href="https://sbmforexacademy.com" 
+               style="background: #6b21a8; color: white; padding: 12px 30px; text-decoration: none; border-radius: 5px; display: inline-block;">
+              Access Your Dashboard
+            </a>
+          </div>
         </div>
         <div style="background-color: #e5e7eb; padding: 20px; text-align: center; font-size: 12px; color: #666;">
           <p>© 2024 SBM Forex Academy. All rights reserved.</p>

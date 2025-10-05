@@ -1130,6 +1130,7 @@ bot.command("togglepayment", isAdminMiddleware, async (ctx) => {
     }
 
     // Toggle the payment status
+    const oldStatus = user.paymentStatus;
     user.paymentStatus = !user.paymentStatus;
     await user.save();
 
@@ -1146,6 +1147,36 @@ bot.command("togglepayment", isAdminMiddleware, async (ctx) => {
         "</b>",
       { parse_mode: "HTML" }
     );
+
+    // If payment status was changed to active, send payment confirmation email
+    if (user.paymentStatus && !oldStatus) {
+      try {
+        // Import the sendPaymentConfirmationEmail function
+        const { sendPaymentConfirmationEmail } = await import(
+          "../config/email.js"
+        );
+
+        // Find the most recent payment for this user
+        const Payment = (await import("../models/Payment.js")).default;
+        const recentPayment = await Payment.findOne({ userId: user._id })
+          .sort({ createdAt: -1 })
+          .limit(1);
+
+        // Use payment service info or default values
+        const serviceInfo = recentPayment
+          ? recentPayment.service
+          : {
+              name: "Service Subscription",
+              price: 0,
+              description: "Subscription service",
+            };
+
+        // Send payment confirmation email
+        await sendPaymentConfirmationEmail(user, serviceInfo);
+      } catch (emailError) {
+        console.error("Failed to send payment confirmation email:", emailError);
+      }
+    }
 
     // Send a notification to the user about their status change
     if (user.telegramId) {
@@ -2350,7 +2381,7 @@ bot.on("document", async (ctx) => {
         `✅ <b>RECEIPT RECEIVED!</b>\n\n` +
           `Thank you ${user.firstName}! We've received your payment receipt.\n\n` +
           `📋 <b>Payment Details:</b>\n` +
-          `サービス <b>Service:</b> ${payment.service.name}\n` +
+          `서비스 <b>Service:</b> ${payment.service.name}\n` +
           `💵 <b>Amount:</b> $${payment.amount}\n` +
           `📄 <b>Payment ID:</b> ${payment._id}\n` +
           `🔄 <b>Status:</b> ${payment.status}\n\n` +
@@ -2420,6 +2451,7 @@ bot.command("approvePayment", isAdminMiddleware, async (ctx) => {
     }
 
     // Update payment status to completed
+    const oldStatus = payment.status;
     payment.status = "completed";
     payment.processedBy = ctx.from.id; // Admin who processed it
     payment.processedAt = new Date();
@@ -2470,8 +2502,22 @@ bot.command("approvePayment", isAdminMiddleware, async (ctx) => {
     }
 
     // Also update the user's payment status to true
+    const oldUserStatus = user.paymentStatus;
     user.paymentStatus = true;
     await user.save();
+
+    // Send payment confirmation email
+    try {
+      // Import the sendPaymentConfirmationEmail function
+      const { sendPaymentConfirmationEmail } = await import(
+        "../config/email.js"
+      );
+
+      // Send payment confirmation email
+      await sendPaymentConfirmationEmail(user, payment.service);
+    } catch (emailError) {
+      console.error("Failed to send payment confirmation email:", emailError);
+    }
 
     // Send a second notification to the user about their activated service
     if (user.telegramId) {
