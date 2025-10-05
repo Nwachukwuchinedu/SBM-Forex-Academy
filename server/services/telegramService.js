@@ -29,15 +29,9 @@ const setupBotMenu = async () => {
   try {
     await bot.telegram.setMyCommands([
       { command: "start", description: "Start the bot" },
-      { command: "connect", description: "Connect your account" },
       { command: "token", description: "Connect using a token" },
-      {
-        command: "howtojoin",
-        description: "Get instructions on how to join the group",
-      },
       { command: "help", description: "Show help message" },
       { command: "logout", description: "Logout from your account" },
-      { command: "uploadreceipt", description: "Upload payment receipt" },
     ]);
     console.log("✅ Telegram bot menu configured");
   } catch (error) {

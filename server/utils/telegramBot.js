@@ -59,7 +59,7 @@ bot.use(async (ctx, next) => {
         `Click here to start: [Start Private Chat](https://t.me/${
           process.env.BOT_USERNAME || "SBMforexbot"
         })\n\n` +
-        `Available commands: /start, /connect, /services, /help, /uploadreceipt`,
+        `Available commands: /start, /services, /help`,
       { parse_mode: "Markdown" }
     );
     return; // Stop execution, don't call next()
@@ -72,15 +72,9 @@ bot.use(async (ctx, next) => {
 // Set bot commands menu - only general commands for all users
 bot.telegram.setMyCommands([
   { command: "start", description: "Start the bot" },
-  { command: "connect", description: "Connect your account" },
   { command: "token", description: "Connect using a token" },
-  {
-    command: "howtojoin",
-    description: "Get instructions on how to join the group",
-  },
   { command: "help", description: "Show help message" },
   { command: "logout", description: "Logout from your account" },
-  { command: "uploadreceipt", description: "Upload payment receipt" },
 ]);
 
 // Get admin ID and group invite link from database
@@ -353,7 +347,7 @@ bot.start(async (ctx) => {
           `Click here to start: [Start Private Chat](https://t.me/${
             process.env.BOT_USERNAME || "SBMforexbot"
           })\n\n` +
-          `Available commands: /connect, /services, /help, /uploadreceipt`,
+          `Available commands: /services, /help`,
         { parse_mode: "Markdown" }
       );
       return;
@@ -591,13 +585,9 @@ bot.action("help", async (ctx) => {
   message += "Available commands:\n\n";
   message += "👤 General:\n";
   message += "• /start - Start the bot\n";
-  message += "• /connect - Connect your account\n";
   message += "• /token - Connect using a token\n";
-  message += "• /howtojoin - Get instructions on how to join the group\n";
-  message += "• /services - View available services and payment information\n";
   message += "• /help - Show this help message\n";
-  message += "• /logout - Logout from your account\n";
-  message += "• /uploadreceipt - Upload payment receipt\n\n";
+  message += "• /logout - Logout from your account\n\n";
 
   // Admin commands (only shown to admins)
   if (isAdminUser) {
@@ -1049,14 +1039,9 @@ bot.help(async (ctx) => {
   message += "Available commands:\n\n";
   message += "👤 General:\n";
   message += "• /start - Start the bot\n";
-  message += "• /connect - Connect your account\n";
   message += "• /token - Connect using a token\n";
-  message += "• /howtojoin - Get instructions on how to join the group\n";
-  message += "• /services - View available services and payment information\n";
   message += "• /help - Show this help message\n";
-  message += "• /logout - Logout from your account\n";
-  message += "• /uploadreceipt - Upload payment receipt\n\n";
-
+  message += "• /logout - Logout from your account\n\n";
   // Admin commands (only shown to admins)
   if (isAdminUser) {
     message += "🛡️ Admin Commands:\n";
@@ -1855,104 +1840,6 @@ bot.command("payment", async (ctx) => {
     );
   }
 });
-
-// Services command handler
-const servicesHandler = async (ctx) => {
-  try {
-    const userId = ctx.from.id;
-
-    // Check if user is connected
-    let user = await User.findOne({ telegramId: userId });
-    const admin = await Admin.findOne({ telegramId: userId });
-
-    // If not a regular user, check if it's an admin
-    if (!user && admin) {
-      user = admin;
-    }
-
-    let message =
-      `<strong>💳 SBM FOREX ACADEMY SERVICES</strong>\n` +
-      `<em>Comprehensive trading solutions for all skill levels</em>\n\n`;
-
-    if (!user) {
-      message +=
-        `⚠️ <strong>Account Not Connected</strong>\n` +
-        `Please <u>connect your account</u> using /connect to access personalized services.\n\n`;
-    }
-
-    // Account Management Services
-    message +=
-      `<strong>💼 ACCOUNT MANAGEMENT</strong>\n` +
-      `<em>Professional management for consistent profits</em>\n\n` +
-      `<u>1. Basic Account Management</u>\n` +
-      `<strong>Price:</strong> $500/month\n` +
-      `• Professional account setup and configuration\n` +
-      `• Regular market analysis and trading signals\n` +
-      `• Basic risk management and position sizing\n\n` +
-      `<u>2. Advanced Account Management</u>\n` +
-      `<strong>Price:</strong> $1000 - $5000/month\n` +
-      `• All Basic package benefits\n` +
-      `• Customized trading strategies and plans\n` +
-      `• Advanced risk management and portfolio optimization\n` +
-      `• Regular performance analysis and reporting\n\n` +
-      `<u>3. Premium Account Management</u>\n` +
-      `<strong>Price:</strong> $5000 - $10000/month\n` +
-      `• All Advanced package benefits\n` +
-      `• Personalized trading coach and dedicated manager\n` +
-      `• Advanced technical analysis and market research\n` +
-      `• High-net-worth account management\n\n`;
-
-    // Signal Provision Service
-    message +=
-      `<strong>📈 SIGNAL PROVISION</strong>\n` +
-      `<em>Accurate signals for informed trading decisions</em>\n\n` +
-      `<u>Forex Trading Signals Service</u>\n` +
-      `<strong>Price:</strong> $80/month\n` +
-      `• Accurate and timely trading signals\n` +
-      `• Expert analysis and market insights\n` +
-      `• Trade entry and exit strategies\n\n`;
-
-    // Payment Information
-    message +=
-      `<strong>💰 PAYMENT OPTIONS</strong>\n` +
-      `<em>Bank transfer is our only accepted payment method</em>\n\n` +
-      `<u>Bank Transfer:</u>\n` +
-      `<strong>Account Name:</strong> <code>Emmanuel Chidiebere</code>\n` +
-      `<strong>Account Number:</strong> <code>6162598082</code>\n` +
-      `<strong>Bank:</strong> <em>Fidelity Bank</em>\n\n` +
-      `<u>After payment:</u>\n` +
-      `<strong>Send proof to WhatsApp:</strong>\n` +
-      `<a href="https://wa.me/2349032085666">Click here to chat</a>\n\n` +
-      `<em>For more information, visit our website or contact support.</em>`;
-
-    await ctx.reply(message, { parse_mode: "HTML" });
-
-    // Show menu again if user is connected
-    if (user) {
-      await ctx.reply(`<strong>Need more information?</strong>`, {
-        parse_mode: "HTML",
-        reply_markup: {
-          inline_keyboard: [
-            [{ text: "💳 Payment Options", callback_data: "payment_info" }],
-            [{ text: "◀️ Back to Main Menu", callback_data: "main_menu" }],
-          ],
-        },
-      });
-    }
-  } catch (error) {
-    console.error("Error in services handler:", error);
-    try {
-      await ctx.reply(
-        "An error occurred while fetching service information. Please try again later."
-      );
-    } catch {}
-  }
-};
-
-// Register the command and a regex-based fallback (handles /services@BotName)
-console.log("Registering /services handlers");
-bot.command("services", servicesHandler);
-bot.hears(/^\/services(?:@\w+)?(?:\s|$)/i, servicesHandler);
 
 // Browse Services - streamlined service selection
 bot.action("browse_services", async (ctx) => {
