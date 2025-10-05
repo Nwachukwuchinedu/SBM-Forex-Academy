@@ -1,9 +1,10 @@
 // Import required modules
-import { Telegraf, Markup } from "telegraf";
+import { Telegraf, Markup, session } from "telegraf";
 import dotenv from "dotenv";
 
 import User from "../models/User.js";
 import Admin from "../models/Admin.js";
+import Payment from "../models/Payment.js";
 import axios from "axios";
 
 // Load environment variables
@@ -11,6 +12,9 @@ dotenv.config();
 
 // Initialize the bot with the token from environment variables
 const bot = new Telegraf(process.env.TELEGRAM_BOT_TOKEN);
+
+// Add session middleware
+bot.use(session());
 
 // Error handling middleware
 bot.catch((error) => {
@@ -1310,120 +1314,73 @@ bot.command("paidmessage", isAdminMiddleware, async (ctx) => {
     // Delete the command message immediately so users don't see it
     try {
       await ctx.deleteMessage();
-    } catch (deleteError) {
-      console.log("Could not delete command message:", deleteError.message);
+    } catch (error) {
+      console.error("Failed to delete message:", error);
     }
 
-    // Extract message from command
-    const args = ctx.message.text.split(" ");
+    // Get the message text
+    const message = ctx.message.text;
 
-    if (args.length < 2) {
-      await bot.telegram.sendMessage(
-        ctx.from.id,
-        "❌ Please provide a message. Usage: /paidmessage [your message]\n\n" +
-          "This message will only be visible to paid users in the group."
+    if (!message) {
+      await ctx.reply(
+        "❌ Please provide a message to send. Usage: /paidmessage [your message]"
       );
       return;
     }
 
-    const message = args.slice(1).join(" ");
-
-    // Check if we're in a group and if it's the designated group
-    if (
-      !ctx.chat ||
-      (ctx.chat.type !== "group" && ctx.chat.type !== "supergroup")
-    ) {
-      await bot.telegram.sendMessage(
-        ctx.from.id,
-        "❌ This command can only be used in the designated group."
-      );
-      return;
-    }
-
-    // Check if this is the correct group
+    // Get admin info for group invite link
     const adminInfo = await getAdminInfo();
-    if (
-      process.env.TELEGRAM_GROUP_ID &&
-      ctx.chat.id.toString() !== process.env.TELEGRAM_GROUP_ID
-    ) {
-      await bot.telegram.sendMessage(
-        ctx.from.id,
-        "❌ This command can only be used in the designated group."
+
+    // If group invite link is not set, inform admin and exit
+    if (!adminInfo.groupInviteLink) {
+      await ctx.reply(
+        "❌ Group invite link is not set in the admin dashboard. Please set the group invite link first."
       );
       return;
     }
 
-    // Find all paying users with Telegram IDs who are in the group
-    const payingUsers = await User.find({
-      paymentStatus: true,
-      telegramId: { $ne: null },
-    });
-
-    if (!payingUsers || payingUsers.length === 0) {
+    // Send the message to the group
+    try {
       await bot.telegram.sendMessage(
-        ctx.from.id,
-        "📭 No paying users found in the group to receive the message."
+        adminInfo.groupInviteLink,
+        `<b>📢 Paid Message</b>\n\n${message}`,
+        { parse_mode: "HTML" }
       );
-      return;
-    }
 
-    let successCount = 0;
-    let failureCount = 0;
-    let notInGroupCount = 0;
+      await ctx.reply(
+        "<b>✅ Paid Message Sent to Group</b>\n\n" +
+          "The message has been sent to all members of the group.",
+        { parse_mode: "HTML" }
+      );
+    } catch (error) {
+      console.error(
+        "Failed to send paid message to the group:",
+        error.response ? error.response.description : error.message
+      );
 
-    // Send the message to the group (visible to all)
-    await ctx.reply(message, { parse_mode: "HTML" });
-
-    // Send additional content to paid users only (as a bot response)
-    for (const user of payingUsers) {
-      try {
-        // Check if user is in the Telegram group
-        const isInGroup = await isUserInGroup(user.telegramId);
-
-        if (!isInGroup) {
-          console.log(
-            `User ${user.email} is not in the group, skipping paid content`
-          );
-          notInGroupCount++;
-          continue;
-        }
-
-        // Send additional exclusive content to paid users privately
-        await bot.telegram.sendMessage(
-          user.telegramId,
-          `💎 <b>Exclusive Content for Paid Members</b>
-
-${message}
-
-<i>This is additional exclusive content only for paid members!</i>`,
+      // Handle specific cases like chat not found or message is not modified
+      if (
+        error.response &&
+        (error.response.error_code === 400 ||
+          error.response.error_code === 422 ||
+          error.response.error_code === 403)
+      ) {
+        await ctx.reply(
+          "❌ Failed to send the paid message to the group.\n\n" +
+            "Please ensure the group invite link is correct and you have permissions to send messages there.",
           { parse_mode: "HTML" }
         );
-        successCount++;
-      } catch (error) {
-        console.error(
-          `Failed to send paid content to user ${user.telegramId}:`,
-          error
+      } else {
+        await ctx.reply(
+          "❌ An error occurred while sending the paid message to the group. Please try again later.",
+          { parse_mode: "HTML" }
         );
-        failureCount++;
       }
     }
-
-    // Send confirmation to admin privately (not in group)
-    await bot.telegram.sendMessage(
-      ctx.from.id,
-      `<b>💎 Paid Message Summary</b>\n\n` +
-        `Message sent to paid users only\n` +
-        `Total paying users: ${payingUsers.length}\n` +
-        `Successfully delivered: ${successCount}\n` +
-        `Not in group: ${notInGroupCount}\n` +
-        `Failed deliveries: ${failureCount}`,
-      { parse_mode: "HTML" }
-    );
   } catch (error) {
     console.error("Error in paidmessage command:", error);
-    await bot.telegram.sendMessage(
-      ctx.from.id,
-      "An error occurred while sending the paid message. Please try again later."
+    await ctx.reply(
+      "An error occurred while sending the paid message to the group. Please try again later."
     );
   }
 });
@@ -2105,10 +2062,28 @@ bot.action("signal_services", async (ctx) => {
 
 // Service selection handlers
 bot.action("select_service_basic", async (ctx) => {
+  // Store selected service in user's session
+  ctx.session = ctx.session || {};
+  ctx.session.selectedService = {
+    name: "Basic Account Management",
+    price: 500,
+    currency: "USD",
+    description:
+      "Professional account setup and configuration with regular market analysis and trading signals",
+  };
   await showPaymentInstructions(ctx, "Basic Account Management", "$500/month");
 });
 
 bot.action("select_service_advanced", async (ctx) => {
+  // Store selected service in user's session
+  ctx.session = ctx.session || {};
+  ctx.session.selectedService = {
+    name: "Advanced Account Management",
+    price: 2500, // Mid-range price for $1000-$5000 range
+    currency: "USD",
+    description:
+      "All Basic package benefits with customized trading strategies and advanced risk management",
+  };
   await showPaymentInstructions(
     ctx,
     "Advanced Account Management",
@@ -2117,6 +2092,15 @@ bot.action("select_service_advanced", async (ctx) => {
 });
 
 bot.action("select_service_premium", async (ctx) => {
+  // Store selected service in user's session
+  ctx.session = ctx.session || {};
+  ctx.session.selectedService = {
+    name: "Premium Account Management",
+    price: 7500, // Mid-range price for $5000-$10000 range
+    currency: "USD",
+    description:
+      "All Advanced package benefits with personalized trading coach and dedicated manager",
+  };
   await showPaymentInstructions(
     ctx,
     "Premium Account Management",
@@ -2125,6 +2109,15 @@ bot.action("select_service_premium", async (ctx) => {
 });
 
 bot.action("select_service_signals", async (ctx) => {
+  // Store selected service in user's session
+  ctx.session = ctx.session || {};
+  ctx.session.selectedService = {
+    name: "Trading Signals Service",
+    price: 80,
+    currency: "USD",
+    description:
+      "Accurate and timely trading signals with expert analysis and market insights",
+  };
   await showPaymentInstructions(ctx, "Trading Signals Service", "$80/month");
 });
 
@@ -2195,20 +2188,53 @@ bot.on("photo", async (ctx) => {
     const photo = ctx.message.photo[ctx.message.photo.length - 1];
     const fileId = photo.file_id;
 
+    // Get selected service from user's session or use default
+    const selectedService =
+      ctx.session && ctx.session.selectedService
+        ? ctx.session.selectedService
+        : {
+            name: "Unknown Service",
+            price: 0,
+            currency: "USD",
+            description: "Payment receipt uploaded via Telegram",
+          };
+
+    // Create a pending payment record
+    const payment = new Payment({
+      userId: user._id,
+      userEmail: user.email,
+      service: {
+        name: selectedService.name,
+        price: selectedService.price,
+        description: selectedService.description,
+      },
+      amount: selectedService.price,
+      currency: selectedService.currency,
+      status: "pending",
+      receiptFileId: fileId,
+      receiptFileName: `receipt_${Date.now()}.jpg`,
+    });
+
+    await payment.save();
+
     // Get admin info to send notification
     const adminInfo = await getAdminInfo();
 
     if (adminInfo.adminId) {
-      // Send receipt to admin with user details
+      // Send receipt to admin with user details and payment info
       await bot.telegram.sendPhoto(adminInfo.adminId, fileId, {
         caption:
           `📸 <b>PAYMENT RECEIPT RECEIVED</b>\n\n` +
           `👤 <b>User:</b> ${user.firstName} ${user.lastName}\n` +
           `📧 <b>Email:</b> ${user.email}\n` +
           `🆔 <b>Telegram ID:</b> ${userId}\n` +
+          `💰 <b>Payment ID:</b> ${payment._id}\n` +
+          `サービ <b>Service:</b> ${payment.service.name}\n` +
+          `💵 <b>Amount:</b> $${payment.amount}\n` +
           `📅 <b>Received:</b> ${new Date().toLocaleString()}\n\n` +
           `💳 <b>To approve payment:</b>\n` +
-          `Use: <code>/togglepayment ${user.email}</code>\n\n` +
+          `Use: <code>/togglepayment ${user.email}</code>\n` +
+          `Or use: <code>/approvePayment ${payment._id}</code>\n\n` +
           `⏰ <i>Please review and approve within 24 hours</i>`,
         parse_mode: "HTML",
       });
@@ -2217,6 +2243,11 @@ bot.on("photo", async (ctx) => {
       await ctx.reply(
         `✅ <b>RECEIPT RECEIVED!</b>\n\n` +
           `Thank you ${user.firstName}! We've received your payment receipt.\n\n` +
+          `📋 <b>Payment Details:</b>\n` +
+          `サービ <b>Service:</b> ${payment.service.name}\n` +
+          `💵 <b>Amount:</b> $${payment.amount}\n` +
+          `📄 <b>Payment ID:</b> ${payment._id}\n` +
+          `🔄 <b>Status:</b> ${payment.status}\n\n` +
           `📋 <b>What happens next:</b>\n` +
           `• We'll review your receipt within 24 hours\n` +
           `• You'll receive a confirmation when approved\n` +
@@ -2247,7 +2278,7 @@ bot.on("photo", async (ctx) => {
   }
 });
 
-// Handle receipt documents - when users send receipt documents
+// Handle receipt documents - when users send receipt documents (PDF, etc.)
 bot.on("document", async (ctx) => {
   try {
     const userId = ctx.from.id;
@@ -2258,32 +2289,58 @@ bot.on("document", async (ctx) => {
       return;
     }
 
-    // Check if document is an image
+    // Get document info
     const document = ctx.message.document;
-    if (!document.mime_type || !document.mime_type.startsWith("image/")) {
-      await ctx.reply(
-        "❌ Please upload only image files (JPG, PNG, GIF) as your payment receipt.\n\n" +
-          "Documents and other file types are not accepted."
-      );
-      return;
-    }
-
     const fileId = document.file_id;
+    const fileName = document.file_name;
+
+    // Get selected service from user's session or use default
+    const selectedService =
+      ctx.session && ctx.session.selectedService
+        ? ctx.session.selectedService
+        : {
+            name: "Unknown Service",
+            price: 0,
+            currency: "USD",
+            description: "Payment receipt uploaded via Telegram",
+          };
+
+    // Create a pending payment record
+    const payment = new Payment({
+      userId: user._id,
+      userEmail: user.email,
+      service: {
+        name: selectedService.name,
+        price: selectedService.price,
+        description: selectedService.description,
+      },
+      amount: selectedService.price,
+      currency: selectedService.currency,
+      status: "pending",
+      receiptFileId: fileId,
+      receiptFileName: fileName,
+    });
+
+    await payment.save();
 
     // Get admin info to send notification
     const adminInfo = await getAdminInfo();
 
     if (adminInfo.adminId) {
-      // Send receipt to admin with user details
+      // Send receipt to admin with user details and payment info
       await bot.telegram.sendDocument(adminInfo.adminId, fileId, {
         caption:
-          `📸 <b>PAYMENT RECEIPT RECEIVED</b>\n\n` +
+          `📄 <b>PAYMENT RECEIPT RECEIVED</b>\n\n` +
           `👤 <b>User:</b> ${user.firstName} ${user.lastName}\n` +
           `📧 <b>Email:</b> ${user.email}\n` +
           `🆔 <b>Telegram ID:</b> ${userId}\n` +
+          `💰 <b>Payment ID:</b> ${payment._id}\n` +
+          `サービ <b>Service:</b> ${payment.service.name}\n` +
+          `💵 <b>Amount:</b> $${payment.amount}\n` +
           `📅 <b>Received:</b> ${new Date().toLocaleString()}\n\n` +
           `💳 <b>To approve payment:</b>\n` +
-          `Use: <code>/togglepayment ${user.email}</code>\n\n` +
+          `Use: <code>/togglepayment ${user.email}</code>\n` +
+          `Or use: <code>/approvePayment ${payment._id}</code>\n\n` +
           `⏰ <i>Please review and approve within 24 hours</i>`,
         parse_mode: "HTML",
       });
@@ -2292,6 +2349,11 @@ bot.on("document", async (ctx) => {
       await ctx.reply(
         `✅ <b>RECEIPT RECEIVED!</b>\n\n` +
           `Thank you ${user.firstName}! We've received your payment receipt.\n\n` +
+          `📋 <b>Payment Details:</b>\n` +
+          `サービス <b>Service:</b> ${payment.service.name}\n` +
+          `💵 <b>Amount:</b> $${payment.amount}\n` +
+          `📄 <b>Payment ID:</b> ${payment._id}\n` +
+          `🔄 <b>Status:</b> ${payment.status}\n\n` +
           `📋 <b>What happens next:</b>\n` +
           `• We'll review your receipt within 24 hours\n` +
           `• You'll receive a confirmation when approved\n` +
@@ -2322,9 +2384,120 @@ bot.on("document", async (ctx) => {
   }
 });
 
-// View Services Details - uses the same handler as the services command
-bot.action("view_services", servicesHandler);
+// Admin command to approve payments by payment ID
+bot.command("approvePayment", isAdminMiddleware, async (ctx) => {
+  try {
+    // Get the payment ID from command arguments
+    const args = ctx.message.text.split(" ");
 
-// Export the bot instance and helper functions
+    if (args.length < 2) {
+      await ctx.reply(
+        "❌ Please provide a payment ID. Usage: /approvePayment [payment_id]"
+      );
+      return;
+    }
+
+    const paymentId = args[1];
+
+    // Find the payment by ID
+    const payment = await Payment.findById(paymentId);
+
+    if (!payment) {
+      await ctx.reply(
+        "❌ Payment with ID " + paymentId + " not found in our system."
+      );
+      return;
+    }
+
+    // Find the user associated with this payment
+    const user = await User.findById(payment.userId);
+
+    if (!user) {
+      await ctx.reply(
+        "❌ User associated with this payment not found in our system."
+      );
+      return;
+    }
+
+    // Update payment status to completed
+    payment.status = "completed";
+    payment.processedBy = ctx.from.id; // Admin who processed it
+    payment.processedAt = new Date();
+    await payment.save();
+
+    await ctx.reply(
+      "<b>✅ Successfully approved payment for " +
+        user.firstName +
+        " " +
+        user.lastName +
+        " (" +
+        user.email +
+        ")</b>\n" +
+        "<b>Payment ID:</b> " +
+        payment._id +
+        "\n" +
+        "<b>Service:</b> " +
+        payment.service.name +
+        "\n" +
+        "<b>Amount:</b> $" +
+        payment.amount +
+        "\n" +
+        "<b>New status:</b> Completed",
+      { parse_mode: "HTML" }
+    );
+
+    // Send a notification to the user about their payment approval
+    if (user.telegramId) {
+      try {
+        await bot.telegram.sendMessage(
+          user.telegramId,
+          `<b>🔔 Payment Approved</b>\n\n` +
+            `Great news! Your payment has been approved.\n\n` +
+            `📋 <b>Payment Details:</b>\n` +
+            `サービ <b>Service:</b> ${payment.service.name}\n` +
+            `💵 <b>Amount:</b> $${payment.amount}\n` +
+            `📄 <b>Payment ID:</b> ${payment._id}\n` +
+            `📅 <b>Approved:</b> ${new Date().toLocaleString()}\n\n` +
+            `Your service is now active and you can enjoy all the benefits!`,
+          { parse_mode: "HTML" }
+        );
+      } catch (error) {
+        console.error(
+          `Failed to send notification to user ${user.telegramId}:`,
+          error
+        );
+      }
+    }
+
+    // Also update the user's payment status to true
+    user.paymentStatus = true;
+    await user.save();
+
+    // Send a second notification to the user about their activated service
+    if (user.telegramId) {
+      try {
+        await bot.telegram.sendMessage(
+          user.telegramId,
+          `<b>✅ Service Activated</b>\n\n` +
+            `Your service is now active!\n\n` +
+            `サービ <b>Service:</b> ${payment.service.name}\n` +
+            `💰 <b>Status:</b> ACTIVE\n\n` +
+            `You can now receive educational content and broadcasts.`,
+          { parse_mode: "HTML" }
+        );
+      } catch (error) {
+        console.error(
+          `Failed to send service activation notification to user ${user.telegramId}:`,
+          error
+        );
+      }
+    }
+  } catch (error) {
+    console.error("Error in approvePayment command:", error);
+    await ctx.reply(
+      "An error occurred while approving the payment. Please try again later."
+    );
+  }
+});
+
 export default bot;
-export { isAdminMiddleware, canReceiveMessages };

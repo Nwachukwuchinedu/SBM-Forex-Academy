@@ -1,16 +1,17 @@
 // Import required modules
-import bot, { isAdminMiddleware } from "../utils/telegramBot.js";
+import bot from "../utils/telegramBot.js";
 
 // Function to start the Telegram bot
 const startTelegramBot = async () => {
   try {
     console.log("Starting Telegram bot...");
-    // Launch the bot
-    await bot.launch();
-    console.log("✅ Telegram bot is running");
 
     // Set up bot menu
     await setupBotMenu();
+
+    // Launch the bot
+    await bot.launch();
+    console.log("✅ Telegram bot is running");
 
     // Set up graceful shutdown
     process.once("SIGINT", () => bot.stop("SIGINT"));
