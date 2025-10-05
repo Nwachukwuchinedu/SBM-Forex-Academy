@@ -36,6 +36,7 @@ const setupBotMenu = async () => {
       },
       { command: "help", description: "Show help message" },
       { command: "logout", description: "Logout from your account" },
+      { command: "uploadreceipt", description: "Upload payment receipt" },
     ]);
     console.log("✅ Telegram bot menu configured");
   } catch (error) {

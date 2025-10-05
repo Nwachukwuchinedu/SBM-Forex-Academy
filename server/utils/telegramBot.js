@@ -55,7 +55,7 @@ bot.use(async (ctx, next) => {
         `Click here to start: [Start Private Chat](https://t.me/${
           process.env.BOT_USERNAME || "SBMforexbot"
         })\n\n` +
-        `Available commands: /start, /connect, /services, /help`,
+        `Available commands: /start, /connect, /services, /help, /uploadreceipt`,
       { parse_mode: "Markdown" }
     );
     return; // Stop execution, don't call next()
@@ -76,6 +76,7 @@ bot.telegram.setMyCommands([
   },
   { command: "help", description: "Show help message" },
   { command: "logout", description: "Logout from your account" },
+  { command: "uploadreceipt", description: "Upload payment receipt" },
 ]);
 
 // Get admin ID and group invite link from database
@@ -348,7 +349,7 @@ bot.start(async (ctx) => {
           `Click here to start: [Start Private Chat](https://t.me/${
             process.env.BOT_USERNAME || "SBMforexbot"
           })\n\n` +
-          `Available commands: /connect, /services, /help`,
+          `Available commands: /connect, /services, /help, /uploadreceipt`,
         { parse_mode: "Markdown" }
       );
       return;
@@ -591,7 +592,8 @@ bot.action("help", async (ctx) => {
   message += "• /howtojoin - Get instructions on how to join the group\n";
   message += "• /services - View available services and payment information\n";
   message += "• /help - Show this help message\n";
-  message += "• /logout - Logout from your account\n\n";
+  message += "• /logout - Logout from your account\n";
+  message += "• /uploadreceipt - Upload payment receipt\n\n";
 
   // Admin commands (only shown to admins)
   if (isAdminUser) {
@@ -902,8 +904,7 @@ bot.command("token", async (ctx) => {
               (result.data.paymentStatus
                 ? "You will now receive educational content from the group (if you're a group member)."
                 : "You will not receive educational content until your payment status is active.") +
-              groupMessage,
-            { parse_mode: "HTML" }
+              groupMessage
           );
 
           // Show the appropriate menu based on user role
@@ -973,6 +974,50 @@ bot.command("logout", async (ctx) => {
   }
 });
 
+// Upload receipt command
+bot.command("uploadreceipt", async (ctx) => {
+  try {
+    const userId = ctx.from.id;
+
+    // Check if user is connected
+    let user = await User.findOne({ telegramId: userId });
+    const adminUser = await Admin.findOne({ telegramId: userId });
+
+    if (!user && !adminUser) {
+      await ctx.reply(
+        "❌ You need to connect your account first before uploading receipts.\n\n" +
+          "Please use /connect to link your account."
+      );
+      return;
+    }
+
+    if (!user && adminUser) {
+      user = adminUser;
+    }
+
+    await ctx.reply(
+      `<strong>📤 UPLOAD PAYMENT RECEIPT</strong>\n\n` +
+        `Please upload an image of your payment receipt for processing.\n\n` +
+        `Supported formats: JPG, PNG, GIF\n` +
+        `Maximum size: 5MB\n\n` +
+        `After uploading, you'll receive confirmation that your payment is being processed, and our admin team will review your receipt.`,
+      {
+        parse_mode: "HTML",
+        reply_markup: {
+          inline_keyboard: [
+            [{ text: "◀️ Back to Main Menu", callback_data: "main_menu" }],
+          ],
+        },
+      }
+    );
+  } catch (error) {
+    console.error("Error in uploadreceipt command:", error);
+    await ctx.reply(
+      "❌ An error occurred while preparing for receipt upload. Please try again later."
+    );
+  }
+});
+
 // Help command
 bot.help(async (ctx) => {
   const userId = ctx.from.id;
@@ -1005,7 +1050,8 @@ bot.help(async (ctx) => {
   message += "• /howtojoin - Get instructions on how to join the group\n";
   message += "• /services - View available services and payment information\n";
   message += "• /help - Show this help message\n";
-  message += "• /logout - Logout from your account\n\n";
+  message += "• /logout - Logout from your account\n";
+  message += "• /uploadreceipt - Upload payment receipt\n\n";
 
   // Admin commands (only shown to admins)
   if (isAdminUser) {
@@ -1382,9 +1428,19 @@ ${message}
   }
 });
 
-// Listen for new messages in the group
-bot.on("message", async (ctx) => {
+// Listen for new text messages in the group
+bot.on("text", async (ctx) => {
   try {
+    // Only process text messages, not photos or other media
+    if (!ctx.message || !ctx.message.text) {
+      return;
+    }
+
+    // Only process messages from groups, not private chats
+    if (ctx.chat.type !== "group" && ctx.chat.type !== "supergroup") {
+      return;
+    }
+
     // Commands in groups are now handled by middleware above
 
     // Get admin info
@@ -2185,6 +2241,81 @@ bot.on("photo", async (ctx) => {
     }
   } catch (error) {
     console.error("Error handling receipt image:", error);
+    await ctx.reply(
+      "❌ Sorry, there was an error processing your receipt. Please try again or contact support."
+    );
+  }
+});
+
+// Handle receipt documents - when users send receipt documents
+bot.on("document", async (ctx) => {
+  try {
+    const userId = ctx.from.id;
+    const user = await User.findOne({ telegramId: userId });
+
+    if (!user) {
+      await ctx.reply("❌ Please connect your account first using /start");
+      return;
+    }
+
+    // Check if document is an image
+    const document = ctx.message.document;
+    if (!document.mime_type || !document.mime_type.startsWith("image/")) {
+      await ctx.reply(
+        "❌ Please upload only image files (JPG, PNG, GIF) as your payment receipt.\n\n" +
+          "Documents and other file types are not accepted."
+      );
+      return;
+    }
+
+    const fileId = document.file_id;
+
+    // Get admin info to send notification
+    const adminInfo = await getAdminInfo();
+
+    if (adminInfo.adminId) {
+      // Send receipt to admin with user details
+      await bot.telegram.sendDocument(adminInfo.adminId, fileId, {
+        caption:
+          `📸 <b>PAYMENT RECEIPT RECEIVED</b>\n\n` +
+          `👤 <b>User:</b> ${user.firstName} ${user.lastName}\n` +
+          `📧 <b>Email:</b> ${user.email}\n` +
+          `🆔 <b>Telegram ID:</b> ${userId}\n` +
+          `📅 <b>Received:</b> ${new Date().toLocaleString()}\n\n` +
+          `💳 <b>To approve payment:</b>\n` +
+          `Use: <code>/togglepayment ${user.email}</code>\n\n` +
+          `⏰ <i>Please review and approve within 24 hours</i>`,
+        parse_mode: "HTML",
+      });
+
+      // Confirm to user that receipt was received
+      await ctx.reply(
+        `✅ <b>RECEIPT RECEIVED!</b>\n\n` +
+          `Thank you ${user.firstName}! We've received your payment receipt.\n\n` +
+          `📋 <b>What happens next:</b>\n` +
+          `• We'll review your receipt within 24 hours\n` +
+          `• You'll receive a confirmation when approved\n` +
+          `• Your service will be activated automatically\n\n` +
+          `📞 <b>Need help?</b> Contact support at:\n` +
+          `<a href="https://wa.me/2349032085666">WhatsApp Support</a>\n\n` +
+          `⏰ <i>You'll get notified as soon as your payment is processed!</i>`,
+        {
+          parse_mode: "HTML",
+          ...Markup.inlineKeyboard([
+            [Markup.button.callback("📊 Check My Status", "check_status")],
+            [Markup.button.callback("🏠 Main Menu", "main_menu")],
+          ]).oneTime(),
+        }
+      );
+    } else {
+      // Fallback if no admin is set
+      await ctx.reply(
+        `✅ Receipt received! We'll process it soon.\n\n` +
+          `Please contact support if you don't hear back within 24 hours.`
+      );
+    }
+  } catch (error) {
+    console.error("Error handling receipt document:", error);
     await ctx.reply(
       "❌ Sorry, there was an error processing your receipt. Please try again or contact support."
     );
