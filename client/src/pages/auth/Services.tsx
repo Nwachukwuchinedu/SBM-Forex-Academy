@@ -24,7 +24,7 @@ const mentorshipPlans = [
 // ];
 
 const signalPlans = [
-  { name: "Signal Provision Service", price: 80, duration: "1 MONTH" },
+  { name: "Signal Provision Service", price: 50, duration: "1 MONTH" },
 ];
 
 const AuthServicesPage = () => {

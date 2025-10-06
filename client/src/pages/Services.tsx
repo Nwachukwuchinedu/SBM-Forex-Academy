@@ -52,7 +52,7 @@ const ServicesPage = () => {
       courseMode: "online",
       offers: {
         "@type": "Offer",
-        price: "80",
+        price: "50",
         priceCurrency: "USD",
         availability: "https://schema.org/InStock"
       }
@@ -241,7 +241,7 @@ const ServicesPage = () => {
           <div className="max-w-xl mx-auto">
             <div className="card-glass p-8 border border-gold-400/30">
               <div className="text-2xl font-bold mb-2 text-gold">
-                $80
+                $50
                 <span className="text-base font-normal text-gray-400">
                   /month
                 </span>

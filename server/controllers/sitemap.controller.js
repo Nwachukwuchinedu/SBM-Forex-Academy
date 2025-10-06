@@ -87,7 +87,7 @@ const servicePlans = {
     {
       id: "signal-provision",
       name: "Signal Provision Service",
-      price: "$80/month",
+      price: "50/month",
       changefreq: "weekly",
       priority: "0.7"
     }

@@ -2061,7 +2061,7 @@ bot.action("view_services", async (ctx) => {
       `<strong>📈 SIGNAL PROVISION</strong>\n` +
       `<em>Accurate signals for informed trading decisions</em>\n\n` +
       `<u>Forex Trading Signals Service</u>\n` +
-      `<strong>Price:</strong> $80/month\n` +
+      `<strong>Price:</strong> $50/month\n` +
       `• Accurate and timely trading signals\n` +
       `• Expert analysis and market insights\n` +
       `• Trade entry and exit strategies\n\n`;
@@ -2261,7 +2261,7 @@ bot.action("signal_services", async (ctx) => {
 
     await ctx.reply(
       `📈 <b>TRADING SIGNALS SERVICE</b>\n\n` +
-        `💰 <b>Price:</b> $80/month\n\n` +
+        `💰 <b>Price:</b> $50/month\n\n` +
         `✅ <b>What you get:</b>\n` +
         `• Accurate trading signals\n` +
         `• Expert market analysis\n` +
@@ -2274,7 +2274,7 @@ bot.action("signal_services", async (ctx) => {
         ...Markup.inlineKeyboard([
           [
             Markup.button.callback(
-              "📈 Subscribe to Signals ($80/month)",
+              "📈 Subscribe to Signals ($50/month)",
               "select_service_signals"
             ),
           ],
@@ -2341,12 +2341,12 @@ bot.action("select_service_signals", async (ctx) => {
   ctx.session = ctx.session || {};
   ctx.session.selectedService = {
     name: "Trading Signals Service",
-    price: 80,
+    price: 50,
     currency: "USD",
     description:
       "Accurate and timely trading signals with expert analysis and market insights",
   };
-  await showPaymentInstructions(ctx, "Trading Signals Service", "$80/month");
+  await showPaymentInstructions(ctx, "Trading Signals Service", "$50/month");
 });
 
 // Show payment instructions

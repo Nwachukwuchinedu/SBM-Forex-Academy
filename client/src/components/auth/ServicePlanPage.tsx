@@ -21,7 +21,7 @@ const allPlans = [
   {
     name: "Signal Provision Service",
     id: "signal-provision-service",
-    price: 80,
+    price: 50,
     duration: "1 MONTH",
   },
 ];
