@@ -1376,6 +1376,34 @@ bot.on("chat_member", async (ctx) => {
     const newStatus = update.new_chat_member && update.new_chat_member.status;
     if (!newStatus || newStatus !== "member") return;
 
+    // Determine who joined (could be under new_chat_member.user or new_chat_member)
+    const joining = update.new_chat_member.user || update.new_chat_member;
+
+    // Ignore events where the joining user is a bot (could be the bot/admin itself)
+    if (joining && joining.is_bot) {
+      console.log("chat_member event for bot - ignoring welcome/rotation");
+      return;
+    }
+
+    // Send a friendly welcome message in the group for real users
+    try {
+      const chatId = (update.chat && update.chat.id) || (ctx.chat && ctx.chat.id) || process.env.TELEGRAM_GROUP_ID;
+      if (chatId) {
+        const mention = joining && joining.id
+          ? (joining.first_name ? `<a href="tg://user?id=${joining.id}">${joining.first_name}</a>` : (joining.username ? `@${joining.username}` : 'there'))
+          : 'there';
+
+        const welcomeMsg =
+          `<b>🎉 Welcome ${mention}!</b>\n\n` +
+          `Welcome to SBM Forex Academy! 👋\n` +
+          `Please connect your account with /connect to access personalized content. If you've already paid, use /howtojoin or /token to link your account and gain full access.`;
+
+        await bot.telegram.sendMessage(chatId, welcomeMsg, { parse_mode: 'HTML' });
+      }
+    } catch (welcomeErr) {
+      console.error('Failed to send welcome message on member join:', welcomeErr);
+    }
+
     // The invite_link field indicates which invite link was used (if any)
     const rawUsedInvite = update.invite_link || update.inviteLink || update.inviteLinkUrl || null;
     // extract URL if Telegram provided the ChatInviteLink object
@@ -1384,17 +1412,7 @@ bot.on("chat_member", async (ctx) => {
       if (typeof rawUsedInvite === "string") usedInvite = rawUsedInvite;
       else usedInvite = rawUsedInvite.invite_link || rawUsedInvite.inviteLink || rawUsedInvite.link || rawUsedInvite.url || null;
     }
-    if (!usedInvite) {
-      // No invite_link present; nothing to rotate
-      return;
-    }
-
-    // Ignore events where the joining user is a bot (could be the bot/admin itself)
-    const joining = update.new_chat_member.user || update.new_chat_member;
-    if (joining && joining.is_bot) {
-      console.log("chat_member event for bot - ignoring invite rotation");
-      return;
-    }
+    // If no invite link is present we simply won't attempt to match/rotate; welcome already sent above.
 
     // Try to find a user who was sent this invite (match per-user saved invite)
     let matchedUser = null;
