@@ -2,6 +2,7 @@
 import { Telegraf, Markup, session } from "telegraf";
 import dotenv from "dotenv";
 
+import mongoose from "mongoose";
 import User from "../models/User.js";
 import Admin from "../models/Admin.js";
 import Payment from "../models/Payment.js";
@@ -794,7 +795,7 @@ bot.action("toggle_payment", async (ctx) => {
   await ctx.reply(
     "<b>🔄 Toggle Payment Status</b>\n\n" +
       "To toggle a user's payment status, use the command:\n" +
-      "/togglepayment [user_email]",
+      "/togglepayment [payment_id]",
     { parse_mode: "HTML" }
   );
 });
@@ -1120,98 +1121,109 @@ const isAdminMiddleware = async (ctx, next) => {
 // Admin-only command to toggle user payment status
 bot.command("togglepayment", isAdminMiddleware, async (ctx) => {
   try {
-    // Get the user email from command arguments
+    // Expect a payment ID as argument
     const args = ctx.message.text.split(" ");
 
     if (args.length < 2) {
       await ctx.reply(
-        "❌ Please provide a user email. Usage: /togglepayment user@example.com"
+        "❌ Please provide a payment ID. Usage: /togglepayment [payment_id]"
       );
       return;
     }
 
-    const userEmail = args[1];
+  const paymentId = args[1].trim();
 
-    // Find the user by email
-    const user = await User.findOne({ email: userEmail });
+    // Validate paymentId is a valid ObjectId
+    if (!paymentId || !mongoose.isValidObjectId(paymentId)) {
+      await ctx.reply(
+        "❌ The provided payment ID is invalid. Please provide a valid payment ID. Usage: /togglepayment [payment_id]"
+      );
+      return;
+    }
 
+    // Find the payment by ID
+    const payment = await Payment.findById(paymentId);
+    if (!payment) {
+      await ctx.reply(
+        "❌ Payment with ID " + paymentId + " not found in our system."
+      );
+      return;
+    }
+
+    // Find the user associated with the payment
+    const user = await User.findById(payment.userId);
     if (!user) {
       await ctx.reply(
-        "❌ User with email " + userEmail + " not found in our system."
+        "❌ User associated with this payment not found in our system."
       );
       return;
     }
 
-    // Toggle the payment status
-    const oldStatus = user.paymentStatus;
-    user.paymentStatus = !user.paymentStatus;
-    await user.save();
+    // Toggle payment.status between 'pending' and 'completed'
+    const oldPaymentStatus = payment.status;
+    if (payment.status === "completed") {
+      payment.status = "pending";
+      payment.processedBy = null;
+      payment.processedAt = null;
+    } else {
+      payment.status = "completed";
+      // Try to set processedBy to admin DB _id if available
+      const adminRecord = await Admin.findOne({ telegramId: ctx.from.id });
+      payment.processedBy = adminRecord ? adminRecord._id : ctx.from.id;
+      payment.processedAt = new Date();
+    }
+
+    await payment.save();
+
+    // Update user's paymentStatus to reflect whether there is any completed payment
+    // If payment is completed, set user.paymentStatus = true, otherwise check if user has other completed payments
+    if (payment.status === "completed") {
+      user.paymentStatus = true;
+      await user.save();
+    } else {
+      // Check if user has any other completed payments
+      const hasOtherCompleted = await Payment.exists({
+        userId: user._id,
+        status: "completed",
+        _id: { $ne: payment._id },
+      });
+      user.paymentStatus = !!hasOtherCompleted;
+      await user.save();
+    }
 
     await ctx.reply(
-      "<b>✅ Successfully updated payment status for " +
-        user.firstName +
-        " " +
-        user.lastName +
-        " (" +
-        user.email +
-        ")</b>\n" +
-        "<b>New status: " +
-        (user.paymentStatus ? "Paid" : "Not Paid") +
-        "</b>",
+      `<b>✅ Payment ${payment._id} status updated</b>\n` +
+        `<b>Old payment status:</b> ${oldPaymentStatus}\n` +
+        `<b>New payment status:</b> ${payment.status}\n` +
+        `<b>User:</b> ${user.firstName} ${user.lastName} (${user.email})\n` +
+        `<b>User paymentStatus:</b> ${user.paymentStatus ? "ACTIVE" : "INACTIVE"}`,
       { parse_mode: "HTML" }
     );
 
-    // If payment status was changed to active, send payment confirmation email
-    if (user.paymentStatus && !oldStatus) {
-      try {
-        // Import the sendPaymentConfirmationEmail function
-        const { sendPaymentConfirmationEmail } = await import(
-          "../config/email.js"
-        );
-
-        // Find the most recent payment for this user
-        const Payment = (await import("../models/Payment.js")).default;
-        const recentPayment = await Payment.findOne({ userId: user._id })
-          .sort({ createdAt: -1 })
-          .limit(1);
-
-        // Use payment service info or default values
-        const serviceInfo = recentPayment
-          ? recentPayment.service
-          : {
-              name: "Service Subscription",
-              price: 0,
-              description: "Subscription service",
-            };
-
-        // Send payment confirmation email
-        await sendPaymentConfirmationEmail(user, serviceInfo);
-      } catch (emailError) {
-        console.error("Failed to send payment confirmation email:", emailError);
-      }
-    }
-
-    // Send a notification to the user about their status change
+    // Notify the user if connected
     if (user.telegramId) {
       try {
         await bot.telegram.sendMessage(
           user.telegramId,
-          `<b>🔔 Payment Status Update</b>\n\n` +
-            `Your access status has been changed to <b>${
-              user.paymentStatus ? "ACTIVE" : "INACTIVE"
-            }</b>\n` +
-            `You are now ${
-              user.paymentStatus
-                ? "able to receive educational content"
-                : "no longer able to receive educational content"
-            } from the group.`,
+          `<b>🔔 Payment Update</b>\n\n` +
+            `Your payment (ID: ${payment._id}) status has been changed to <b>${payment.status}</b>.\n` +
+            `Your access is now <b>${user.paymentStatus ? "ACTIVE" : "INACTIVE"}</b>.`,
           { parse_mode: "HTML" }
         );
-      } catch (error) {
-        console.error(
-          `Failed to send notification to user ${user.telegramId}:`,
-          error
+      } catch (notifyError) {
+        console.error("Failed to notify user about payment toggle:", notifyError);
+      }
+    }
+
+    // If the payment was activated, send confirmation email
+    if (payment.status === "completed" && oldPaymentStatus !== "completed") {
+      try {
+        const { sendPaymentConfirmationEmail } = await import(
+          "../config/email.js"
         );
+        await sendPaymentConfirmationEmail(user, payment.service);
+      } catch (emailError) {
+        console.error("Failed to send payment confirmation email:", emailError);
       }
     }
   } catch (error) {
@@ -2179,7 +2191,7 @@ bot.on("photo", async (ctx) => {
           `💵 <b>Amount:</b> $${payment.amount}\n` +
           `📅 <b>Received:</b> ${new Date().toLocaleString()}\n\n` +
           `💳 <b>To approve payment:</b>\n` +
-          `Use: <code>/togglepayment ${user.email}</code>\n` +
+          `Use: <code>/togglepayment ${payment._id}</code>\n` +
           `Or use: <code>/approvePayment ${payment._id}</code>\n\n` +
           `⏰ <i>Please review and approve within 24 hours</i>`,
         parse_mode: "HTML",
@@ -2285,7 +2297,7 @@ bot.on("document", async (ctx) => {
           `💵 <b>Amount:</b> $${payment.amount}\n` +
           `📅 <b>Received:</b> ${new Date().toLocaleString()}\n\n` +
           `💳 <b>To approve payment:</b>\n` +
-          `Use: <code>/togglepayment ${user.email}</code>\n` +
+          `Use: <code>/togglepayment ${payment._id}</code>\n` +
           `Or use: <code>/approvePayment ${payment._id}</code>\n\n` +
           `⏰ <i>Please review and approve within 24 hours</i>`,
         parse_mode: "HTML",
@@ -2343,7 +2355,15 @@ bot.command("approvePayment", isAdminMiddleware, async (ctx) => {
       return;
     }
 
-    const paymentId = args[1];
+  const paymentId = args[1].trim();
+
+    // Validate paymentId
+    if (!paymentId || !mongoose.isValidObjectId(paymentId)) {
+      await ctx.reply(
+        "❌ The provided payment ID is invalid. Please provide a valid payment ID. Usage: /approvePayment [payment_id]"
+      );
+      return;
+    }
 
     // Find the payment by ID
     const payment = await Payment.findById(paymentId);
@@ -2367,9 +2387,11 @@ bot.command("approvePayment", isAdminMiddleware, async (ctx) => {
 
     // Update payment status to completed
     const oldStatus = payment.status;
-    payment.status = "completed";
-    payment.processedBy = ctx.from.id; // Admin who processed it
-    payment.processedAt = new Date();
+  payment.status = "completed";
+  // Try to store the admin DB _id (if admin is registered in DB), otherwise store the telegram id
+  const adminRecord = await Admin.findOne({ telegramId: ctx.from.id });
+  payment.processedBy = adminRecord ? adminRecord._id : ctx.from.id;
+  payment.processedAt = new Date();
     await payment.save();
 
     await ctx.reply(

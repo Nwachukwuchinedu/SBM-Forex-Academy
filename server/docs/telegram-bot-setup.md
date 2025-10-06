@@ -63,7 +63,7 @@ Send `/admin` to see the admin panel with available commands.
 
 ### 2. Toggle User Payment Status
 
-Use `/togglepayment [user_telegram_id]` to change a user's payment status.
+Use `/togglepayment [payment_id]` to toggle a payment's status and update the associated user's access.
 
 ### 3. List All Users
 
