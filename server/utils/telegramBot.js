@@ -1131,7 +1131,7 @@ bot.command("togglepayment", isAdminMiddleware, async (ctx) => {
       return;
     }
 
-  const paymentId = args[1].trim();
+    const paymentId = args[1].trim();
 
     // Validate paymentId is a valid ObjectId
     if (!paymentId || !mongoose.isValidObjectId(paymentId)) {
@@ -1198,7 +1198,9 @@ bot.command("togglepayment", isAdminMiddleware, async (ctx) => {
         `<b>Old payment status:</b> ${oldPaymentStatus}\n` +
         `<b>New payment status:</b> ${payment.status}\n` +
         `<b>User:</b> ${user.firstName} ${user.lastName} (${user.email})\n` +
-        `<b>User paymentStatus:</b> ${user.paymentStatus ? "ACTIVE" : "INACTIVE"}`,
+        `<b>User paymentStatus:</b> ${
+          user.paymentStatus ? "ACTIVE" : "INACTIVE"
+        }`,
       { parse_mode: "HTML" }
     );
 
@@ -1209,11 +1211,16 @@ bot.command("togglepayment", isAdminMiddleware, async (ctx) => {
           user.telegramId,
           `<b>🔔 Payment Update</b>\n\n` +
             `Your payment (ID: ${payment._id}) status has been changed to <b>${payment.status}</b>.\n` +
-            `Your access is now <b>${user.paymentStatus ? "ACTIVE" : "INACTIVE"}</b>.`,
+            `Your access is now <b>${
+              user.paymentStatus ? "ACTIVE" : "INACTIVE"
+            }</b>.`,
           { parse_mode: "HTML" }
         );
       } catch (notifyError) {
-        console.error("Failed to notify user about payment toggle:", notifyError);
+        console.error(
+          "Failed to notify user about payment toggle:",
+          notifyError
+        );
       }
     }
 
@@ -1261,115 +1268,151 @@ const canReceiveMessages = async (userId) => {
   }
 };
 
-  // Helper: send a one-time group invite link to a user if payment just became active
-  const sendOneTimeGroupInvite = async (user) => {
-    try {
-      if (!user || !user.telegramId) return;
+// Helper: send a one-time group invite link to a user if payment just became active
+const sendOneTimeGroupInvite = async (user) => {
+  try {
+    if (!user || !user.telegramId) return;
 
-      // Ensure group ID is configured
-      if (!process.env.TELEGRAM_GROUP_ID) {
-        console.log("TELEGRAM_GROUP_ID not configured; skipping invite creation.");
-        return;
-      }
-
-      // Try to create a single-use invite link (member_limit = 1)
-      let inviteLink = null;
-      let createdLinkObj = null;
-      try {
-        console.log("Attempting to create one-time invite link for group", process.env.TELEGRAM_GROUP_ID);
-        const created = await bot.telegram.createChatInviteLink(process.env.TELEGRAM_GROUP_ID, {
-          member_limit: 1,
-        });
-
-        createdLinkObj = created;
-        // Prefer the standard 'invite_link' property, then common fallbacks
-        inviteLink = created && (created.invite_link || created.inviteLink || created.link || created.url);
-
-        console.log("createChatInviteLink result:", created);
-        // If we couldn't extract, log the whole object for debugging
-        if (!inviteLink) {
-          console.error("createChatInviteLink returned unexpected object (no URL extracted):", created);
-        }
-      } catch (createErr) {
-        console.error("Failed to create one-time invite link:", createErr && createErr.response ? createErr.response : createErr);
-      }
-
-      // If creation failed, do NOT fall back to a stored link automatically.
-      // Stored links may be expired/invalid; it's safer to notify admin to fix bot permissions.
-      if (!inviteLink || !createdLinkObj) {
-        console.error("Invite creation failed - not sending fallback link to user. Notifying admin.");
-        const adminInfo = await getAdminInfo();
-        if (adminInfo && adminInfo.adminId) {
-          try {
-            await bot.telegram.sendMessage(
-              adminInfo.adminId,
-              `⚠️ Failed to create a one-time invite link automatically. Please ensure the bot is an admin in the group and has permission to manage invite links.`
-            );
-          } catch (notifyErr) {
-            console.error("Failed to notify admin about missing invite link:", notifyErr);
-          }
-        }
-        return;
-      }
-
-      // Persist the generated invite on the User record so we can match it later
-      if (createdLinkObj && inviteLink) {
-        try {
-          const updatedAdmin = await Admin.findOneAndUpdate(
-            { role: "admin" },
-            { $set: { groupInviteLink: inviteLink } },
-            { new: true }
-          );
-          console.log("Stored generated invite link on Admin record:", updatedAdmin ? updatedAdmin.groupInviteLink : null);
-        } catch (storeErr) {
-          console.error("Failed to store generated invite link on Admin record:", storeErr);
-        }
-
-        try {
-          const updatedUser = await User.findByIdAndUpdate(
-            user._id,
-            {
-              $set: {
-                lastGroupInvite: inviteLink,
-                lastGroupInviteSentAt: new Date(),
-                lastGroupInviteUsed: false,
-              },
-            },
-            { new: true }
-          );
-          console.log(`Stored invite metadata on user ${user._id}:`, {
-            lastGroupInvite: updatedUser ? updatedUser.lastGroupInvite : null,
-            lastGroupInviteSentAt: updatedUser ? updatedUser.lastGroupInviteSentAt : null,
-          });
-        } catch (userStoreErr) {
-          console.error("Failed to store invite metadata on user record:", userStoreErr);
-        }
-      }
-
-      // Compose a friendly invite message
-      const message =
-        `<b>🎉 Congratulations!</b>\n\n` +
-        `Your payment has been confirmed and your access is now active.\n\n` +
-        `Click here to join our Telegram group and start receiving educational content:\n` +
-        `${inviteLink}\n\n` +
-        `<i>This link is valid for one user. It will be revoked once used.</i>`;
-
-      try {
-        await bot.telegram.sendMessage(user.telegramId, message, {
-          parse_mode: "HTML",
-        });
-      } catch (err) {
-        console.error(`Failed to send group invite to ${user.telegramId}:`, err);
-      }
-    } catch (error) {
-      console.error("Error in sendOneTimeGroupInvite:", error);
+    // Ensure group ID is configured
+    if (!process.env.TELEGRAM_GROUP_ID) {
+      console.log(
+        "TELEGRAM_GROUP_ID not configured; skipping invite creation."
+      );
+      return;
     }
-  };
+
+    // Try to create a single-use invite link (member_limit = 1)
+    let inviteLink = null;
+    let createdLinkObj = null;
+    try {
+      console.log(
+        "Attempting to create one-time invite link for group",
+        process.env.TELEGRAM_GROUP_ID
+      );
+      const created = await bot.telegram.createChatInviteLink(
+        process.env.TELEGRAM_GROUP_ID,
+        {
+          member_limit: 1,
+        }
+      );
+
+      createdLinkObj = created;
+      // Prefer the standard 'invite_link' property, then common fallbacks
+      inviteLink =
+        created &&
+        (created.invite_link ||
+          created.inviteLink ||
+          created.link ||
+          created.url);
+
+      console.log("createChatInviteLink result:", created);
+      // If we couldn't extract, log the whole object for debugging
+      if (!inviteLink) {
+        console.error(
+          "createChatInviteLink returned unexpected object (no URL extracted):",
+          created
+        );
+      }
+    } catch (createErr) {
+      console.error(
+        "Failed to create one-time invite link:",
+        createErr && createErr.response ? createErr.response : createErr
+      );
+    }
+
+    // If creation failed, do NOT fall back to a stored link automatically.
+    // Stored links may be expired/invalid; it's safer to notify admin to fix bot permissions.
+    if (!inviteLink || !createdLinkObj) {
+      console.error(
+        "Invite creation failed - not sending fallback link to user. Notifying admin."
+      );
+      const adminInfo = await getAdminInfo();
+      if (adminInfo && adminInfo.adminId) {
+        try {
+          await bot.telegram.sendMessage(
+            adminInfo.adminId,
+            `⚠️ Failed to create a one-time invite link automatically. Please ensure the bot is an admin in the group and has permission to manage invite links.`
+          );
+        } catch (notifyErr) {
+          console.error(
+            "Failed to notify admin about missing invite link:",
+            notifyErr
+          );
+        }
+      }
+      return;
+    }
+
+    // Persist the generated invite on the User record so we can match it later
+    if (createdLinkObj && inviteLink) {
+      try {
+        const updatedAdmin = await Admin.findOneAndUpdate(
+          { role: "admin" },
+          { $set: { groupInviteLink: inviteLink } },
+          { new: true }
+        );
+        console.log(
+          "Stored generated invite link on Admin record:",
+          updatedAdmin ? updatedAdmin.groupInviteLink : null
+        );
+      } catch (storeErr) {
+        console.error(
+          "Failed to store generated invite link on Admin record:",
+          storeErr
+        );
+      }
+
+      try {
+        const updatedUser = await User.findByIdAndUpdate(
+          user._id,
+          {
+            $set: {
+              lastGroupInvite: inviteLink,
+              lastGroupInviteSentAt: new Date(),
+              lastGroupInviteUsed: false,
+            },
+          },
+          { new: true }
+        );
+        console.log(`Stored invite metadata on user ${user._id}:`, {
+          lastGroupInvite: updatedUser ? updatedUser.lastGroupInvite : null,
+          lastGroupInviteSentAt: updatedUser
+            ? updatedUser.lastGroupInviteSentAt
+            : null,
+        });
+      } catch (userStoreErr) {
+        console.error(
+          "Failed to store invite metadata on user record:",
+          userStoreErr
+        );
+      }
+    }
+
+    // Compose a friendly invite message
+    const message =
+      `<b>🎉 Congratulations!</b>\n\n` +
+      `Your payment has been confirmed and your access is now active.\n\n` +
+      `Click here to join our Telegram group and start receiving educational content:\n` +
+      `${inviteLink}\n\n` +
+      `<i>This link is valid for one user. It will be revoked once used.</i>`;
+
+    try {
+      await bot.telegram.sendMessage(user.telegramId, message, {
+        parse_mode: "HTML",
+      });
+    } catch (err) {
+      console.error(`Failed to send group invite to ${user.telegramId}:`, err);
+    }
+  } catch (error) {
+    console.error("Error in sendOneTimeGroupInvite:", error);
+  }
+};
 
 // Handler to detect when a user joins the group via an invite link and rotate the stored link
 bot.on("chat_member", async (ctx) => {
   try {
-    const update = ctx.update && ctx.update.chat_member ? ctx.update.chat_member : null;
+    const update =
+      ctx.update && ctx.update.chat_member ? ctx.update.chat_member : null;
     if (!update) return;
 
     // We only care about users who have just become members
@@ -1387,37 +1430,60 @@ bot.on("chat_member", async (ctx) => {
 
     // Send a friendly welcome message in the group for real users
     try {
-      const chatId = (update.chat && update.chat.id) || (ctx.chat && ctx.chat.id) || process.env.TELEGRAM_GROUP_ID;
+      const chatId =
+        (update.chat && update.chat.id) ||
+        (ctx.chat && ctx.chat.id) ||
+        process.env.TELEGRAM_GROUP_ID;
       if (chatId) {
-        const mention = joining && joining.id
-          ? (joining.first_name ? `<a href="tg://user?id=${joining.id}">${joining.first_name}</a>` : (joining.username ? `@${joining.username}` : 'there'))
-          : 'there';
+        const mention =
+          joining && joining.id
+            ? joining.first_name
+              ? `<a href="tg://user?id=${joining.id}">${joining.first_name}</a>`
+              : joining.username
+              ? `@${joining.username}`
+              : "there"
+            : "there";
 
         const welcomeMsg =
           `<b>🎉 Welcome ${mention}!</b>\n\n` +
           `Welcome to SBM Forex Academy! 👋\n` +
           `Please connect your account with /connect to access personalized content. If you've already paid, use /howtojoin or /token to link your account and gain full access.`;
 
-        await bot.telegram.sendMessage(chatId, welcomeMsg, { parse_mode: 'HTML' });
+        await bot.telegram.sendMessage(chatId, welcomeMsg, {
+          parse_mode: "HTML",
+        });
       }
     } catch (welcomeErr) {
-      console.error('Failed to send welcome message on member join:', welcomeErr);
+      console.error(
+        "Failed to send welcome message on member join:",
+        welcomeErr
+      );
     }
 
     // The invite_link field indicates which invite link was used (if any)
-    const rawUsedInvite = update.invite_link || update.inviteLink || update.inviteLinkUrl || null;
+    const rawUsedInvite =
+      update.invite_link || update.inviteLink || update.inviteLinkUrl || null;
     // extract URL if Telegram provided the ChatInviteLink object
     let usedInvite = null;
     if (rawUsedInvite) {
       if (typeof rawUsedInvite === "string") usedInvite = rawUsedInvite;
-      else usedInvite = rawUsedInvite.invite_link || rawUsedInvite.inviteLink || rawUsedInvite.link || rawUsedInvite.url || null;
+      else
+        usedInvite =
+          rawUsedInvite.invite_link ||
+          rawUsedInvite.inviteLink ||
+          rawUsedInvite.link ||
+          rawUsedInvite.url ||
+          null;
     }
     // If no invite link is present we simply won't attempt to match/rotate; welcome already sent above.
 
     // Try to find a user who was sent this invite (match per-user saved invite)
     let matchedUser = null;
     try {
-      matchedUser = await User.findOne({ lastGroupInvite: usedInvite, lastGroupInviteUsed: { $ne: true } });
+      matchedUser = await User.findOne({
+        lastGroupInvite: usedInvite,
+        lastGroupInviteUsed: { $ne: true },
+      });
     } catch (findErr) {
       console.error("Failed to lookup user by invite URL:", findErr);
     }
@@ -1425,24 +1491,37 @@ bot.on("chat_member", async (ctx) => {
     if (matchedUser) {
       try {
         await User.findByIdAndUpdate(matchedUser._id, {
-          $set: { lastGroupInviteUsed: true, lastGroupInviteUsedAt: new Date() },
+          $set: {
+            lastGroupInviteUsed: true,
+            lastGroupInviteUsedAt: new Date(),
+          },
         });
       } catch (markErr) {
         console.error("Failed to mark user's invite as used:", markErr);
       }
     } else {
-      console.log("No matching user record found for used invite; continuing to rotate fallback.");
+      console.log(
+        "No matching user record found for used invite; continuing to rotate fallback."
+      );
     }
 
     // Create a replacement one-time invite link so the stored fallback remains valid
     if (!process.env.TELEGRAM_GROUP_ID) return;
 
     try {
-      const replacement = await bot.telegram.createChatInviteLink(process.env.TELEGRAM_GROUP_ID, {
-        member_limit: 1,
-      });
+      const replacement = await bot.telegram.createChatInviteLink(
+        process.env.TELEGRAM_GROUP_ID,
+        {
+          member_limit: 1,
+        }
+      );
 
-      const replacementLink = replacement && (replacement.invite_link || replacement.inviteLink || replacement.link || replacement.url);
+      const replacementLink =
+        replacement &&
+        (replacement.invite_link ||
+          replacement.inviteLink ||
+          replacement.link ||
+          replacement.url);
 
       if (replacementLink) {
         await Admin.findOneAndUpdate(
@@ -1456,8 +1535,10 @@ bot.on("chat_member", async (ctx) => {
         if (adminInfoAfter && adminInfoAfter.adminId) {
           try {
             const userLabel = joining
-              ? `${joining.first_name || ''} ${joining.last_name || ''} (id: ${joining.id || 'unknown'})`
-              : 'a member';
+              ? `${joining.first_name || ""} ${joining.last_name || ""} (id: ${
+                  joining.id || "unknown"
+                })`
+              : "a member";
             await bot.telegram.sendMessage(
               adminInfoAfter.adminId,
               `<b>🔁 Invite Link Rotated</b>\n\n` +
@@ -1466,14 +1547,23 @@ bot.on("chat_member", async (ctx) => {
               { parse_mode: "HTML" }
             );
           } catch (notifyErr) {
-            console.error("Failed to notify admin about invite rotation:", notifyErr);
+            console.error(
+              "Failed to notify admin about invite rotation:",
+              notifyErr
+            );
           }
         }
       } else {
-        console.error("Replacement invite creation returned unexpected object:", replacement);
+        console.error(
+          "Replacement invite creation returned unexpected object:",
+          replacement
+        );
       }
     } catch (createErr) {
-      console.error("Failed to create replacement invite link after usage:", createErr && createErr.response ? createErr.response : createErr);
+      console.error(
+        "Failed to create replacement invite link after usage:",
+        createErr && createErr.response ? createErr.response : createErr
+      );
       // If we have permission issues (bot not an admin), notify the admin
       const adminInfoAfter = await getAdminInfo();
       if (adminInfoAfter && adminInfoAfter.adminId) {
@@ -1483,7 +1573,10 @@ bot.on("chat_member", async (ctx) => {
             `⚠️ Failed to create replacement invite link automatically. Please ensure the bot has permission to manage invite links in the group.`
           );
         } catch (notifyErr) {
-          console.error("Failed to notify admin about invite creation failure:", notifyErr);
+          console.error(
+            "Failed to notify admin about invite creation failure:",
+            notifyErr
+          );
         }
       }
     }
@@ -1608,25 +1701,49 @@ bot.command("regeninvite", isAdminMiddleware, async (ctx) => {
     await ctx.reply("Generating a one-time invite link...");
 
     try {
-      const created = await bot.telegram.createChatInviteLink(process.env.TELEGRAM_GROUP_ID, {
-        member_limit: 1,
-      });
+      const created = await bot.telegram.createChatInviteLink(
+        process.env.TELEGRAM_GROUP_ID,
+        {
+          member_limit: 1,
+        }
+      );
 
-      const inviteLink = created && (created.invite_link || created.inviteLink || created.link || created.url);
+      const inviteLink =
+        created &&
+        (created.invite_link ||
+          created.inviteLink ||
+          created.link ||
+          created.url);
 
       if (!inviteLink) {
-        console.error("regeninvite: createChatInviteLink returned unexpected object:", created);
-        await ctx.reply("Invite link created but URL could not be extracted. Check server logs.");
+        console.error(
+          "regeninvite: createChatInviteLink returned unexpected object:",
+          created
+        );
+        await ctx.reply(
+          "Invite link created but URL could not be extracted. Check server logs."
+        );
         return;
       }
 
       // store on admin record
-      await Admin.findOneAndUpdate({ role: "admin" }, { $set: { groupInviteLink: inviteLink } }, { new: true });
+      await Admin.findOneAndUpdate(
+        { role: "admin" },
+        { $set: { groupInviteLink: inviteLink } },
+        { new: true }
+      );
 
-      await ctx.reply(`<b>✅ One-time invite created</b>\n\n${inviteLink}`, { parse_mode: "HTML" });
+      await ctx.reply(`<b>✅ One-time invite created</b>\n\n${inviteLink}`, {
+        parse_mode: "HTML",
+      });
     } catch (err) {
-      console.error("regeninvite createChatInviteLink error:", err && err.response ? err.response : err);
-      await ctx.reply("Failed to create invite link. Check server logs for details and ensure the bot has admin permissions in the group.");
+      console.error(
+        "regeninvite createChatInviteLink error:",
+        err && err.response ? err.response : err
+      );
+      await ctx.reply(
+        "Failed to create invite link. Check server logs for details and ensure the bot has admin permissions in the group."
+      );
     }
   } catch (error) {
     console.error("Error in regeninvite command:", error);
@@ -1644,38 +1761,31 @@ bot.command("paidmessage", isAdminMiddleware, async (ctx) => {
       console.error("Failed to delete message:", error);
     }
 
-    // Get the message text
-    const message = ctx.message.text;
+    // Extract message text (everything after the command)
+    const args = ctx.message.text.split(" ");
 
-    if (!message) {
+    if (args.length < 2) {
       await ctx.reply(
         "❌ Please provide a message to send. Usage: /paidmessage [your message]"
       );
       return;
     }
 
-    // Get admin info for group invite link
-    const adminInfo = await getAdminInfo();
+    const messageText = args.slice(1).join(" ");
 
-    // If group invite link is not set, inform admin and exit
-    if (!adminInfo.groupInviteLink) {
+    // Check if TELEGRAM_GROUP_ID is set
+    if (!process.env.TELEGRAM_GROUP_ID) {
       await ctx.reply(
-        "❌ Group invite link is not set in the admin dashboard. Please set the group invite link first."
+        "❌ Group ID is not configured in environment variables. Please set TELEGRAM_GROUP_ID."
       );
       return;
     }
 
-    // Send the message to the group
+    // Send the message to the group using the chat ID
     try {
       await bot.telegram.sendMessage(
-        adminInfo.groupInviteLink,
-        `<b>📢 Paid Message</b>\n\n${message}`,
-        { parse_mode: "HTML" }
-      );
-
-      await ctx.reply(
-        "<b>✅ Paid Message Sent to Group</b>\n\n" +
-          "The message has been sent to all members of the group.",
+        process.env.TELEGRAM_GROUP_ID, // Use the actual group ID instead of invite link
+        `<b>📢 Paid Message</b>\n\n${messageText}`,
         { parse_mode: "HTML" }
       );
     } catch (error) {
@@ -1684,7 +1794,7 @@ bot.command("paidmessage", isAdminMiddleware, async (ctx) => {
         error.response ? error.response.description : error.message
       );
 
-      // Handle specific cases like chat not found or message is not modified
+      // Handle specific cases like chat not found or permission errors
       if (
         error.response &&
         (error.response.error_code === 400 ||
@@ -1693,7 +1803,10 @@ bot.command("paidmessage", isAdminMiddleware, async (ctx) => {
       ) {
         await ctx.reply(
           "❌ Failed to send the paid message to the group.\n\n" +
-            "Please ensure the group invite link is correct and you have permissions to send messages there.",
+            "Please ensure:\n" +
+            "1. The TELEGRAM_GROUP_ID is correct\n" +
+            "2. The bot is a member of the group\n" +
+            "3. The bot has permission to send messages in the group",
           { parse_mode: "HTML" }
         );
       } else {
@@ -2625,7 +2738,7 @@ bot.command("approvePayment", isAdminMiddleware, async (ctx) => {
       return;
     }
 
-  const paymentId = args[1].trim();
+    const paymentId = args[1].trim();
 
     // Validate paymentId
     if (!paymentId || !mongoose.isValidObjectId(paymentId)) {
@@ -2657,11 +2770,11 @@ bot.command("approvePayment", isAdminMiddleware, async (ctx) => {
 
     // Update payment status to completed
     const oldStatus = payment.status;
-  payment.status = "completed";
-  // Try to store the admin DB _id (if admin is registered in DB), otherwise store the telegram id
-  const adminRecord = await Admin.findOne({ telegramId: ctx.from.id });
-  payment.processedBy = adminRecord ? adminRecord._id : ctx.from.id;
-  payment.processedAt = new Date();
+    payment.status = "completed";
+    // Try to store the admin DB _id (if admin is registered in DB), otherwise store the telegram id
+    const adminRecord = await Admin.findOne({ telegramId: ctx.from.id });
+    payment.processedBy = adminRecord ? adminRecord._id : ctx.from.id;
+    payment.processedAt = new Date();
     await payment.save();
 
     await ctx.reply(
@@ -2708,12 +2821,12 @@ bot.command("approvePayment", isAdminMiddleware, async (ctx) => {
       }
     }
 
-  // Also update the user's payment status to true
-  const oldUserStatus = user.paymentStatus;
-  user.paymentStatus = true;
-  await user.save();
-  // Send a one-time group invite to the user
-  await sendOneTimeGroupInvite(user);
+    // Also update the user's payment status to true
+    const oldUserStatus = user.paymentStatus;
+    user.paymentStatus = true;
+    await user.save();
+    // Send a one-time group invite to the user
+    await sendOneTimeGroupInvite(user);
 
     // Send payment confirmation email
     try {
