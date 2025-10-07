@@ -3,21 +3,72 @@ import dotenv from "dotenv";
 
 dotenv.config();
 
+// Optimized Zoho SMTP configuration for Render deployment
 const transporter = nodemailer.createTransport({
   host: "smtp.zoho.com",
   port: 465,
-  secure: true,
+  secure: true, // Use SSL
   auth: {
     user: process.env.EMAIL_USER,
     pass: process.env.EMAIL_PASS,
   },
+  // Optimized timeout settings for cloud environments
+  tls: {
+    rejectUnauthorized: false, // Accept self-signed certificates
+    ciphers: "SSLv3",
+  },
+  connectionTimeout: 60000, // Increase to 60 seconds
+  greetingTimeout: 60000, // Increase to 60 seconds
+  socketTimeout: 60000, // Increase to 60 seconds
+  logger: true, // Enable logging
+  debug: true, // Enable debug output
 });
+
+// Enhanced email sending with better error handling
+const sendEmailWithRetry = async (mailOptions, maxRetries = 2) => {
+  console.log("Attempting to send email with Zoho SMTP...");
+  console.log("Email configuration:", {
+    host: "smtp.zoho.com",
+    port: 465,
+    secure: true,
+    user: process.env.EMAIL_USER,
+    hasPass: !!process.env.EMAIL_PASS,
+  });
+
+  for (let i = 0; i < maxRetries; i++) {
+    try {
+      console.log(`Email attempt ${i + 1}/${maxRetries}`);
+      const result = await transporter.sendMail(mailOptions);
+      console.log(`✅ Email sent successfully on attempt ${i + 1}`);
+      return result;
+    } catch (error) {
+      console.error(`❌ Email attempt ${i + 1} failed:`, {
+        message: error.message,
+        code: error.code,
+        command: error.command,
+        stack: error.stack,
+      });
+
+      if (i === maxRetries - 1) {
+        throw new Error(
+          `Failed to send email after ${maxRetries} attempts. Last error: ${error.message}`
+        );
+      }
+
+      // Wait 3 seconds before retrying (increased from 2)
+      console.log(`Waiting 3 seconds before retry ${i + 2}...`);
+      await new Promise((resolve) => setTimeout(resolve, 3000));
+    }
+  }
+};
 
 export const sendVerificationEmail = async (email, token, firstName) => {
   const verificationUrl = `${process.env.CLIENT_URL}/verify-email?token=${token}`;
 
   const mailOptions = {
-    from: `"SBM Forex Academy" <${process.env.EMAIL_FROM}>`,
+    from:
+      process.env.EMAIL_FROM ||
+      `"SBM Forex Academy" <${process.env.EMAIL_USER}>`,
     to: email,
     subject: "Verify Your Email - SBM Forex Academy",
     html: `
@@ -48,12 +99,14 @@ export const sendVerificationEmail = async (email, token, firstName) => {
     `,
   };
 
-  await transporter.sendMail(mailOptions);
+  await sendEmailWithRetry(mailOptions);
 };
 
 export const sendPaymentConfirmationEmail = async (user, serviceInfo) => {
   const mailOptions = {
-    from: `"SBM Forex Academy" <${process.env.EMAIL_FROM}>`,
+    from:
+      process.env.EMAIL_FROM ||
+      `"SBM Forex Academy" <${process.env.EMAIL_USER}>`,
     to: user.email,
     subject: "Payment Confirmation - SBM Forex Academy",
     html: `
@@ -108,7 +161,24 @@ export const sendPaymentConfirmationEmail = async (user, serviceInfo) => {
     `,
   };
 
-  await transporter.sendMail(mailOptions);
+  await sendEmailWithRetry(mailOptions);
+};
+
+// Test connection function
+export const testEmailConnection = async () => {
+  try {
+    console.log("Testing email connection...");
+    await transporter.verify();
+    console.log("✅ Email server connection verified successfully");
+    return true;
+  } catch (error) {
+    console.error("❌ Email server connection failed:", {
+      message: error.message,
+      code: error.code,
+      stack: error.stack,
+    });
+    return false;
+  }
 };
 
 export default transporter;

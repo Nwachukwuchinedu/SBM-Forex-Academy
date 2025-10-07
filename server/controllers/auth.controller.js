@@ -18,13 +18,13 @@ export const register = async (req, res) => {
       return res.status(400).json({ message: "Email already exists" });
 
     const hashedPassword = await bcrypt.hash(password, 10);
-    
+
     // Generate verification token
-    const verificationToken = crypto.randomBytes(32).toString('hex');
+    const verificationToken = crypto.randomBytes(32).toString("hex");
     const verificationExpires = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
 
-    console.log('Generated verification token:', verificationToken);
-    console.log('Token expires at:', verificationExpires);
+    console.log("Generated verification token:", verificationToken);
+    console.log("Token expires at:", verificationExpires);
 
     const user = await User.create({
       firstName,
@@ -35,26 +35,34 @@ export const register = async (req, res) => {
       emailVerificationExpires: verificationExpires,
     });
 
-    console.log('User created with token:', user.emailVerificationToken);
+    console.log("User created with token:", user.emailVerificationToken);
 
     // Try to send verification email
     try {
+      console.log("Attempting to send verification email to:", email);
       await sendVerificationEmail(email, verificationToken, firstName);
-      
-      res.status(201).json({ 
-        message: "Registration successful! Please check your email to verify your account.",
+      console.log("✅ Verification email sent successfully to:", email);
+
+      res.status(201).json({
+        message:
+          "Registration successful! Please check your email to verify your account.",
         userId: user._id,
-        emailSent: true
+        emailSent: true,
       });
     } catch (emailError) {
-      console.error("Email sending failed:", emailError.message);
-      
+      console.error("❌ Email sending failed:", {
+        message: emailError.message,
+        stack: emailError.stack,
+        user: { email, firstName },
+      });
+
       // Registration was successful, but email failed
-      res.status(201).json({ 
-        message: "Registration successful! However, we couldn't send the verification email. You can request a new verification email later.",
+      res.status(201).json({
+        message:
+          "Registration successful! However, we couldn't send the verification email. You can request a new verification email later.",
         userId: user._id,
         emailSent: false,
-        emailError: "Email service temporarily unavailable"
+        emailError: emailError.message,
       });
     }
   } catch (error) {
@@ -68,57 +76,68 @@ export const verifyEmail = async (req, res) => {
   try {
     const { token } = req.query;
 
-    console.log('Received token from query:', token);
-    console.log('Token type:', typeof token);
-    console.log('Token length:', token ? token.length : 'null');
+    console.log("Received token from query:", token);
+    console.log("Token type:", typeof token);
+    console.log("Token length:", token ? token.length : "null");
 
     if (!token) {
-      return res.status(400).json({ message: "Verification token is required" });
+      return res
+        .status(400)
+        .json({ message: "Verification token is required" });
     }
 
     // Clean the token (remove any potential encoding issues)
     const cleanToken = decodeURIComponent(token.toString().trim());
-    console.log('Cleaned token:', cleanToken);
-    console.log('Current time:', new Date());
+    console.log("Cleaned token:", cleanToken);
+    console.log("Current time:", new Date());
 
     // First, let's see what users exist with verification tokens
-    const usersWithTokens = await User.find({ 
-      emailVerificationToken: { $exists: true, $ne: null } 
-    }).select('email emailVerificationToken emailVerificationExpires');
-    
-    console.log('Users with verification tokens:', usersWithTokens.map(u => ({
-      email: u.email,
-      token: u.emailVerificationToken,
-      expires: u.emailVerificationExpires,
-      expired: u.emailVerificationExpires < new Date()
-    })));
+    const usersWithTokens = await User.find({
+      emailVerificationToken: { $exists: true, $ne: null },
+    }).select("email emailVerificationToken emailVerificationExpires");
+
+    console.log(
+      "Users with verification tokens:",
+      usersWithTokens.map((u) => ({
+        email: u.email,
+        token: u.emailVerificationToken,
+        expires: u.emailVerificationExpires,
+        expired: u.emailVerificationExpires < new Date(),
+      }))
+    );
 
     const user = await User.findOne({
       emailVerificationToken: cleanToken,
       emailVerificationExpires: { $gt: Date.now() },
     });
 
-    console.log('Found user:', user ? { 
-      email: user.email, 
-      tokenMatch: user.emailVerificationToken === cleanToken,
-      tokenExpired: user.emailVerificationExpires < new Date()
-    } : 'null');
+    console.log(
+      "Found user:",
+      user
+        ? {
+            email: user.email,
+            tokenMatch: user.emailVerificationToken === cleanToken,
+            tokenExpired: user.emailVerificationExpires < new Date(),
+          }
+        : "null"
+    );
 
     if (!user) {
       // Let's also check if there's a user with this token but expired
       const expiredUser = await User.findOne({
         emailVerificationToken: cleanToken,
       });
-      
+
       if (expiredUser) {
-        console.log('Found expired token for user:', expiredUser.email);
-        return res.status(400).json({ 
-          message: "Verification token has expired. Please request a new verification email." 
+        console.log("Found expired token for user:", expiredUser.email);
+        return res.status(400).json({
+          message:
+            "Verification token has expired. Please request a new verification email.",
         });
       }
 
-      return res.status(400).json({ 
-        message: "Invalid or expired verification token" 
+      return res.status(400).json({
+        message: "Invalid or expired verification token",
       });
     }
 
@@ -128,7 +147,7 @@ export const verifyEmail = async (req, res) => {
     user.emailVerificationExpires = undefined;
     await user.save();
 
-    console.log('User verified successfully:', user.email);
+    console.log("User verified successfully:", user.email);
 
     // Generate tokens for immediate login
     const accessToken = generateAccessToken(user._id);
@@ -137,9 +156,9 @@ export const verifyEmail = async (req, res) => {
     user.refreshToken = refreshToken;
     await user.save();
 
-    res.json({ 
+    res.json({
       message: "Email verified successfully! You are now logged in.",
-      accessToken, 
+      accessToken,
       refreshToken,
       user: {
         id: user._id,
@@ -147,7 +166,7 @@ export const verifyEmail = async (req, res) => {
         lastName: user.lastName,
         email: user.email,
         isEmailVerified: user.isEmailVerified,
-      }
+      },
     });
   } catch (error) {
     console.error("Email verification error:", error);
@@ -170,10 +189,10 @@ export const resendVerificationEmail = async (req, res) => {
     }
 
     // Generate new verification token
-    const verificationToken = crypto.randomBytes(32).toString('hex');
+    const verificationToken = crypto.randomBytes(32).toString("hex");
     const verificationExpires = new Date(Date.now() + 24 * 60 * 60 * 1000);
 
-    console.log('Resend - Generated new token:', verificationToken);
+    console.log("Resend - Generated new token:", verificationToken);
 
     user.emailVerificationToken = verificationToken;
     user.emailVerificationExpires = verificationExpires;
@@ -182,16 +201,16 @@ export const resendVerificationEmail = async (req, res) => {
     // Try to send verification email
     try {
       await sendVerificationEmail(email, verificationToken, user.firstName);
-      res.json({ 
+      res.json({
         message: "Verification email sent successfully",
-        emailSent: true 
+        emailSent: true,
       });
     } catch (emailError) {
       console.error("Email sending failed:", emailError.message);
-      res.status(500).json({ 
+      res.status(500).json({
         message: "Failed to send verification email. Please try again later.",
         emailSent: false,
-        error: "Email service temporarily unavailable"
+        error: "Email service temporarily unavailable",
       });
     }
   } catch (error) {
@@ -209,7 +228,8 @@ export const login = async (req, res) => {
     if (!user) return res.status(400).json({ message: "Invalid credentials" });
 
     const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch) return res.status(400).json({ message: "Invalid credentials" });
+    if (!isMatch)
+      return res.status(400).json({ message: "Invalid credentials" });
 
     // For now, allow login without email verification but warn user
     const accessToken = generateAccessToken(user._id);
@@ -217,8 +237,8 @@ export const login = async (req, res) => {
 
     await User.findByIdAndUpdate(user._id, { refreshToken });
 
-    const response = { 
-      accessToken, 
+    const response = {
+      accessToken,
       refreshToken,
       user: {
         id: user._id,
@@ -226,11 +246,12 @@ export const login = async (req, res) => {
         lastName: user.lastName,
         email: user.email,
         isEmailVerified: user.isEmailVerified,
-      }
+      },
     };
 
     if (!user.isEmailVerified) {
-      response.warning = "Please verify your email address to secure your account";
+      response.warning =
+        "Please verify your email address to secure your account";
     }
 
     res.json(response);
@@ -271,9 +292,9 @@ export const refreshToken = async (req, res) => {
 
     await User.findByIdAndUpdate(user._id, { refreshToken: newRefreshToken });
 
-    res.json({ 
-      accessToken: newAccessToken, 
-      refreshToken: newRefreshToken 
+    res.json({
+      accessToken: newAccessToken,
+      refreshToken: newRefreshToken,
     });
   } catch (error) {
     res.status(401).json({ message: "Invalid refresh token" });
@@ -285,10 +306,7 @@ export const logout = async (req, res) => {
   try {
     const { refreshToken } = req.body;
     if (refreshToken) {
-      await User.updateOne(
-        { refreshToken },
-        { $unset: { refreshToken: 1 } }
-      );
+      await User.updateOne({ refreshToken }, { $unset: { refreshToken: 1 } });
     }
     res.json({ message: "Logged out successfully" });
   } catch (error) {
@@ -305,7 +323,7 @@ export const updateProfile = async (req, res) => {
       { firstName, lastName },
       { new: true }
     ).select("-password -refreshToken");
-    
+
     res.json(user);
   } catch (error) {
     res.status(500).json({ message: "Server error" });
