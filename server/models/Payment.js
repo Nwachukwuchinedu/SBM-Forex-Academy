@@ -57,6 +57,13 @@ const paymentSchema = new mongoose.Schema(
     processedAt: {
       type: Date,
     },
+    // New fields for payment expiration tracking
+    startDate: {
+      type: Date,
+    },
+    expirationDate: {
+      type: Date,
+    },
   },
   {
     timestamps: true,
@@ -67,6 +74,7 @@ const paymentSchema = new mongoose.Schema(
 paymentSchema.index({ userId: 1 });
 paymentSchema.index({ status: 1 });
 paymentSchema.index({ createdAt: -1 });
+paymentSchema.index({ expirationDate: 1 });
 
 const Payment = mongoose.model("Payment", paymentSchema);
 

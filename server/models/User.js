@@ -44,6 +44,14 @@ const userSchema = new mongoose.Schema(
       type: String,
       default: null,
     },
+    // New fields for payment expiration notification tracking
+    lastExpirationNotification: {
+      type: Date,
+    },
+    expirationNotificationCount: {
+      type: Number,
+      default: 0,
+    },
   },
   {
     timestamps: true,

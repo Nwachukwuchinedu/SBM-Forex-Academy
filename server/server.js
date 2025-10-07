@@ -5,6 +5,7 @@ import {
   startTelegramBot,
   stopTelegramBot,
 } from "./services/telegramService.js";
+import { schedulePaymentExpirationChecker } from "./utils/paymentExpirationChecker.js";
 
 dotenv.config();
 
@@ -17,6 +18,9 @@ const httpServer = app.listen(PORT, async () => {
   try {
     // Start Telegram bot
     await startTelegramBot();
+
+    // Schedule payment expiration checker
+    schedulePaymentExpirationChecker();
   } catch (error) {
     console.error(
       "Failed to start Telegram bot. The web server is running but Telegram functionality is disabled."

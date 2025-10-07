@@ -1165,12 +1165,20 @@ bot.command("togglepayment", isAdminMiddleware, async (ctx) => {
       payment.status = "pending";
       payment.processedBy = null;
       payment.processedAt = null;
+      // Clear startDate and expirationDate when payment is deactivated
+      payment.startDate = null;
+      payment.expirationDate = null;
     } else {
       payment.status = "completed";
       // Try to set processedBy to admin DB _id if available
       const adminRecord = await Admin.findOne({ telegramId: ctx.from.id });
       payment.processedBy = adminRecord ? adminRecord._id : ctx.from.id;
       payment.processedAt = new Date();
+
+      // Set payment start date and expiration date (30 days from approval)
+      payment.startDate = new Date();
+      payment.expirationDate = new Date();
+      payment.expirationDate.setDate(payment.expirationDate.getDate() + 30);
     }
 
     await payment.save();
@@ -1192,7 +1200,6 @@ bot.command("togglepayment", isAdminMiddleware, async (ctx) => {
       user.paymentStatus = !!hasOtherCompleted;
       await user.save();
     }
-
     await ctx.reply(
       `<b>✅ Payment ${payment._id} status updated</b>\n` +
         `<b>Old payment status:</b> ${oldPaymentStatus}\n` +
@@ -2698,6 +2705,12 @@ bot.command("approvePayment", isAdminMiddleware, async (ctx) => {
     const adminRecord = await Admin.findOne({ telegramId: ctx.from.id });
     payment.processedBy = adminRecord ? adminRecord._id : ctx.from.id;
     payment.processedAt = new Date();
+
+    // Set payment start date and expiration date (30 days from approval)
+    payment.startDate = new Date();
+    payment.expirationDate = new Date();
+    payment.expirationDate.setDate(payment.expirationDate.getDate() + 30);
+
     await payment.save();
 
     await ctx.reply(
