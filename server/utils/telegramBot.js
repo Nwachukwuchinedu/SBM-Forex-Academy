@@ -1802,7 +1802,7 @@ bot.command("paidmessage", isAdminMiddleware, async (ctx) => {
           error.response.error_code === 403)
       ) {
         await ctx.reply(
-          "❌ Failed to send the paid message to the group.\n\n" +
+          "<b>❌ Failed to send the paid message to the group.</b>\n\n" +
             "Please ensure:\n" +
             "1. The TELEGRAM_GROUP_ID is correct\n" +
             "2. The bot is a member of the group\n" +
@@ -1811,7 +1811,7 @@ bot.command("paidmessage", isAdminMiddleware, async (ctx) => {
         );
       } else {
         await ctx.reply(
-          "❌ An error occurred while sending the paid message to the group. Please try again later.",
+          "<b>❌ An error occurred while sending the paid message to the group.</b> Please try again later.",
           { parse_mode: "HTML" }
         );
       }
@@ -1819,7 +1819,8 @@ bot.command("paidmessage", isAdminMiddleware, async (ctx) => {
   } catch (error) {
     console.error("Error in paidmessage command:", error);
     await ctx.reply(
-      "An error occurred while sending the paid message to the group. Please try again later."
+      "<b>An error occurred while sending the paid message to the group.</b> Please try again later.",
+      { parse_mode: "HTML" }
     );
   }
 });
@@ -1850,101 +1851,31 @@ bot.on("text", async (ctx) => {
       // Get the message sender's information
       const senderId = ctx.message.from.id;
 
-      // Only forward messages from admins to paid users
-      if (
+      // Check if sender is admin
+      const isAdmin =
         adminInfo.adminId &&
-        senderId.toString() === adminInfo.adminId.toString()
-      ) {
-        // Get all paying users with connected Telegram accounts who are in the group
-        const payingUsers = await User.find({
-          paymentStatus: true,
-          telegramId: { $ne: null },
-        });
+        senderId.toString() === adminInfo.adminId.toString();
 
-        if (!payingUsers || payingUsers.length === 0) {
-          console.log("No paying users to forward message to");
-          return;
-        }
+      // For admin users, we don't automatically forward messages to paid users
+      // They should use the /paidmessage command for that functionality
+      // For non-admin users, they can send messages normally in the group
 
-        let successCount = 0;
-        let failureCount = 0;
-        let notInGroupCount = 0;
-
-        // Forward the message to each paying user
-        for (const user of payingUsers) {
-          try {
-            // Check if user can receive messages (payment status + group membership)
-            const canReceive = await canReceiveMessages(user.telegramId);
-
-            if (!canReceive) {
-              // Check specifically if it's a group membership issue
-              const isInGroup = process.env.TELEGRAM_GROUP_ID
-                ? await isUserInGroup(user.telegramId)
-                : true;
-
-              if (process.env.TELEGRAM_GROUP_ID && !isInGroup) {
-                console.log(
-                  `User ${user.email} is not in the group, skipping message forwarding`
-                );
-                notInGroupCount++;
-                // Send a notification to the user that they need to join the group
-                try {
-                  await bot.telegram.sendMessage(
-                    user.telegramId,
-                    `<b>📢 Message Forwarding Notice</b>\n\n` +
-                      `We tried to forward a group message to you, but you're not currently a member of our Telegram group.\n\n` +
-                      `Please join our group to receive educational content. After joining, you'll start receiving messages again.\n\n` +
-                      `Use /howtojoin to get instructions on how to join our group.`,
-                    { parse_mode: "HTML" }
-                  );
-                } catch (notifyError) {
-                  console.error(
-                    `Failed to notify user ${user.telegramId} about group membership:`,
-                    notifyError
-                  );
-                }
-              }
-              continue;
-            }
-
-            // Copy the message to the user
-            await ctx.copyMessage(user.telegramId);
-            successCount++;
-          } catch (error) {
-            console.error(
-              "Failed to forward message to user " + user.telegramId + ":",
-              error
-            );
-            failureCount++;
-          }
-        }
-
-        // Send summary to admin privately (not in the group)
+      // We only send a private confirmation to admin that their message was received
+      if (isAdmin) {
         try {
+          // Send a private confirmation to admin that their message was received in the group
           await bot.telegram.sendMessage(
             senderId,
-            `<b>📬 Message Distribution Summary</b>\n\n` +
-              `Total paying users: ${payingUsers.length}\n` +
-              `Successfully delivered: ${successCount}\n` +
-              `Not in group: ${notInGroupCount}\n` +
-              `Failed deliveries: ${failureCount}\n\n` +
-              (notInGroupCount > 0
-                ? `${notInGroupCount} users were notified that they need to join the group to receive messages.\n\n`
-                : "") +
-              (failureCount > 0
-                ? "Some users may have blocked the bot or deleted their account."
-                : ""),
-            { parse_mode: "HTML" }
+            "*✅ Your message has been sent to the group.*\n\n" +
+              "Note: If you want to send a message only to paid users, please use the /paidmessage command."
           );
         } catch (error) {
-          console.error("Failed to send distribution summary:", error);
+          console.error("Failed to send confirmation to admin:", error);
         }
       }
-      // For non-admin users, we don't send any notifications or restrictions
-      // They can send messages normally in the group
     }
   } catch (error) {
-    console.error("Error in message forwarding:", error);
+    console.error("Error in message handling:", error);
   }
 });
 
