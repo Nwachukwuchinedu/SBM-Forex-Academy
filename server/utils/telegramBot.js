@@ -1837,119 +1837,111 @@ bot.on("text", async (ctx) => {
       return;
     }
 
-    // Commands in groups are now handled by middleware above
+    // Ignore commands (messages starting with /) to prevent interference with command handlers
+    if (ctx.message.text.startsWith("/")) {
+      return;
+    }
 
     // Get admin info
     const adminInfo = await getAdminInfo();
 
     // Check if the message is from the designated group
-    if (
-      adminInfo.groupInviteLink &&
-      ctx.chat.id.toString() === process.env.TELEGRAM_GROUP_ID
-    ) {
+    if (ctx.chat.id.toString() === process.env.TELEGRAM_GROUP_ID) {
       // Get the message sender's information
       const senderId = ctx.message.from.id;
 
-      // Only allow admins to post messages that get forwarded
+      // Only forward messages from admins to paid users
       if (
-        !adminInfo.adminId ||
-        senderId.toString() !== adminInfo.adminId.toString()
+        adminInfo.adminId &&
+        senderId.toString() === adminInfo.adminId.toString()
       ) {
-        // Optionally send a private message to non-admins explaining the restriction
+        // Get all paying users with connected Telegram accounts who are in the group
+        const payingUsers = await User.find({
+          paymentStatus: true,
+          telegramId: { $ne: null },
+        });
+
+        if (!payingUsers || payingUsers.length === 0) {
+          console.log("No paying users to forward message to");
+          return;
+        }
+
+        let successCount = 0;
+        let failureCount = 0;
+        let notInGroupCount = 0;
+
+        // Forward the message to each paying user
+        for (const user of payingUsers) {
+          try {
+            // Check if user can receive messages (payment status + group membership)
+            const canReceive = await canReceiveMessages(user.telegramId);
+
+            if (!canReceive) {
+              // Check specifically if it's a group membership issue
+              const isInGroup = process.env.TELEGRAM_GROUP_ID
+                ? await isUserInGroup(user.telegramId)
+                : true;
+
+              if (process.env.TELEGRAM_GROUP_ID && !isInGroup) {
+                console.log(
+                  `User ${user.email} is not in the group, skipping message forwarding`
+                );
+                notInGroupCount++;
+                // Send a notification to the user that they need to join the group
+                try {
+                  await bot.telegram.sendMessage(
+                    user.telegramId,
+                    `<b>📢 Message Forwarding Notice</b>\n\n` +
+                      `We tried to forward a group message to you, but you're not currently a member of our Telegram group.\n\n` +
+                      `Please join our group to receive educational content. After joining, you'll start receiving messages again.\n\n` +
+                      `Use /howtojoin to get instructions on how to join our group.`,
+                    { parse_mode: "HTML" }
+                  );
+                } catch (notifyError) {
+                  console.error(
+                    `Failed to notify user ${user.telegramId} about group membership:`,
+                    notifyError
+                  );
+                }
+              }
+              continue;
+            }
+
+            // Copy the message to the user
+            await ctx.copyMessage(user.telegramId);
+            successCount++;
+          } catch (error) {
+            console.error(
+              "Failed to forward message to user " + user.telegramId + ":",
+              error
+            );
+            failureCount++;
+          }
+        }
+
+        // Send summary to admin privately (not in the group)
         try {
           await bot.telegram.sendMessage(
             senderId,
-            "ℹ️ Only administrators can post messages that will be forwarded to students. Please contact an admin if you need to share important information."
+            `<b>📬 Message Distribution Summary</b>\n\n` +
+              `Total paying users: ${payingUsers.length}\n` +
+              `Successfully delivered: ${successCount}\n` +
+              `Not in group: ${notInGroupCount}\n` +
+              `Failed deliveries: ${failureCount}\n\n` +
+              (notInGroupCount > 0
+                ? `${notInGroupCount} users were notified that they need to join the group to receive messages.\n\n`
+                : "") +
+              (failureCount > 0
+                ? "Some users may have blocked the bot or deleted their account."
+                : ""),
+            { parse_mode: "HTML" }
           );
         } catch (error) {
-          console.error(`Failed to send info message to ${senderId}:`, error);
-        }
-        return;
-      }
-
-      // Get all paying users with connected Telegram accounts who are in the group
-      const payingUsers = await User.find({
-        paymentStatus: true,
-        telegramId: { $ne: null },
-      });
-
-      if (!payingUsers || payingUsers.length === 0) {
-        console.log("No paying users to forward message to");
-        return;
-      }
-
-      let successCount = 0;
-      let failureCount = 0;
-      let notInGroupCount = 0;
-
-      // Forward the message to each paying user
-      for (const user of payingUsers) {
-        try {
-          // Check if user can receive messages (payment status + group membership)
-          const canReceive = await canReceiveMessages(user.telegramId);
-
-          if (!canReceive) {
-            // Check specifically if it's a group membership issue
-            const isInGroup = process.env.TELEGRAM_GROUP_ID
-              ? await isUserInGroup(user.telegramId)
-              : true;
-
-            if (process.env.TELEGRAM_GROUP_ID && !isInGroup) {
-              console.log(
-                `User ${user.email} is not in the group, skipping message forwarding`
-              );
-              notInGroupCount++;
-              // Send a notification to the user that they need to join the group
-              try {
-                await bot.telegram.sendMessage(
-                  user.telegramId,
-                  `<b>📢 Message Forwarding Notice</b>\n\n` +
-                    `We tried to forward a group message to you, but you're not currently a member of our Telegram group.\n\n` +
-                    `Please join our group to receive educational content. After joining, you'll start receiving messages again.\n\n` +
-                    `Use /howtojoin to get instructions on how to join our group.`,
-                  { parse_mode: "HTML" }
-                );
-              } catch (notifyError) {
-                console.error(
-                  `Failed to notify user ${user.telegramId} about group membership:`,
-                  notifyError
-                );
-              }
-            }
-            continue;
-          }
-
-          // Copy the message to the user
-          await ctx.copyMessage(user.telegramId);
-          successCount++;
-        } catch (error) {
-          console.error(
-            `Failed to forward message to user ${user.telegramId}:`,
-            error
-          );
-          failureCount++;
+          console.error("Failed to send distribution summary:", error);
         }
       }
-
-      // Send summary to admin
-      try {
-        await ctx.reply(
-          `<b>📬 Message Distribution Summary</b>\n\n` +
-            `Total paying users: ${payingUsers.length}\n` +
-            `Successfully delivered: ${successCount}\n` +
-            `Not in group: ${notInGroupCount}\n` +
-            `Failed deliveries: ${failureCount}\n\n` +
-            (notInGroupCount > 0
-              ? `${notInGroupCount} users were notified that they need to join the group to receive messages.\n\n`
-              : "") +
-            (failureCount > 0
-              ? "Some users may have blocked the bot or deleted their account."
-              : ""),
-          { parse_mode: "HTML" }
-        );
-      } catch (error) {
-        console.error("Failed to send distribution summary:", error);
-      }
+      // For non-admin users, we don't send any notifications or restrictions
+      // They can send messages normally in the group
     }
   } catch (error) {
     console.error("Error in message forwarding:", error);
