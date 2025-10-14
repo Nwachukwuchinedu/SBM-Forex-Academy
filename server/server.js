@@ -24,10 +24,11 @@ const httpServer = app.listen(PORT, async () => {
       console.log("✅ Email service is ready");
     } else {
       console.log("⚠️ Email service connection failed - check configuration");
-      console.log("Current email config:", {
-        EMAIL_USER: process.env.EMAIL_USER,
-        EMAIL_FROM: process.env.EMAIL_FROM,
-        hasPassword: !!process.env.EMAIL_PASS,
+      const disableEmails = String(process.env.DISABLE_EMAILS).toLowerCase() === "true";
+      console.log("Current email config (non-sensitive):", {
+        SENDGRID_SENDER: process.env.SENDGRID_SENDER,
+        hasSendGridApiKey: !!process.env.SENDGRID_API_KEY,
+        disableEmails,
       });
     }
 
