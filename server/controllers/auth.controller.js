@@ -19,7 +19,29 @@ export const register = async (req, res) => {
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // Generate verification token
+    // If email sending is disabled via env, auto-verify user; otherwise follow normal verification flow
+    const disableEmails = String(process.env.DISABLE_EMAILS).toLowerCase() === "true";
+
+    if (disableEmails) {
+      const user = await User.create({
+        firstName,
+        lastName,
+        email,
+        password: hashedPassword,
+        isEmailVerified: true,
+      });
+
+      console.log("User created and auto-verified:", user.email);
+
+      return res.status(201).json({
+        message:
+          "Registration successful! Email verification is disabled in this environment; your account is verified.",
+        userId: user._id,
+        emailVerified: true,
+      });
+    }
+
+    // Normal flow: generate verification token and send email
     const verificationToken = crypto.randomBytes(32).toString("hex");
     const verificationExpires = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
 
@@ -43,7 +65,7 @@ export const register = async (req, res) => {
       await sendVerificationEmail(email, verificationToken, firstName);
       console.log("✅ Verification email sent successfully to:", email);
 
-      res.status(201).json({
+      return res.status(201).json({
         message:
           "Registration successful! Please check your email to verify your account.",
         userId: user._id,
@@ -57,7 +79,7 @@ export const register = async (req, res) => {
       });
 
       // Registration was successful, but email failed
-      res.status(201).json({
+      return res.status(201).json({
         message:
           "Registration successful! However, we couldn't send the verification email. You can request a new verification email later.",
         userId: user._id,
@@ -187,7 +209,22 @@ export const resendVerificationEmail = async (req, res) => {
     if (user.isEmailVerified) {
       return res.status(400).json({ message: "Email is already verified" });
     }
+    const disableEmails = String(process.env.DISABLE_EMAILS).toLowerCase() === "true";
 
+    if (disableEmails) {
+      user.isEmailVerified = true;
+      user.emailVerificationToken = undefined;
+      user.emailVerificationExpires = undefined;
+      await user.save();
+
+      return res.json({
+        message:
+          "Email verification is disabled in this environment. Your account has been marked as verified.",
+        emailVerified: true,
+      });
+    }
+
+    // Email sending is enabled — follow original resend flow
     // Generate new verification token
     const verificationToken = crypto.randomBytes(32).toString("hex");
     const verificationExpires = new Date(Date.now() + 24 * 60 * 60 * 1000);
@@ -201,13 +238,13 @@ export const resendVerificationEmail = async (req, res) => {
     // Try to send verification email
     try {
       await sendVerificationEmail(email, verificationToken, user.firstName);
-      res.json({
+      return res.json({
         message: "Verification email sent successfully",
         emailSent: true,
       });
     } catch (emailError) {
       console.error("Email sending failed:", emailError.message);
-      res.status(500).json({
+      return res.status(500).json({
         message: "Failed to send verification email. Please try again later.",
         emailSent: false,
         error: "Email service temporarily unavailable",
